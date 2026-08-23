@@ -65,6 +65,8 @@ pub enum AuctionError {
     /// above WAD would be a premium rather than a discount.
     DiscountOutOfRange,
     NothingLeftToSell,
+    /// A debt or surplus bid that does not beat the standing one by `beg`.
+    BidNotAnImprovement,
 }
 
 type Result<T> = core::result::Result<T, AuctionError>;
@@ -355,6 +357,7 @@ impl Auction {
 }
 
 pub mod liquidation;
+pub mod settlement;
 
 #[cfg(test)]
 mod tests;
