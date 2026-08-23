@@ -135,8 +135,13 @@ that hash resolves. The wallet's exit code and its output say nothing useful
 either way.
 
 ```bash
-WALLET=/path/to/lez/wallet ./scripts/deploy.sh
+WALLET=/path/to/lez/wallet ./scripts/deploy.sh   # deploy
+./scripts/verify-onchain.sh                      # re-check everything, no setup
 ```
+
+Thirteen checks, four of which are things that must **not** resolve. The whole
+lifecycle, the refusals and the timings are in
+[`DEPLOYMENTS.md`](DEPLOYMENTS.md).
 
 Deployment is permissionless and idempotent: identical bytes reproduce the same
 hash, and the script short-circuits rather than submitting again.
