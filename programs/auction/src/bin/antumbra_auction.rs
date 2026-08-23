@@ -80,6 +80,13 @@ pub struct AuctionState {
     pub collateral_seized: u128,
     /// Base units still unsold.
     pub collateral_left: u128,
+    /// Base units handed to bidders so far, accumulated independently of
+    /// `collateral_left` rather than derived from it. Two counters that are
+    /// maintained separately can disagree, which is the only way an invariant
+    /// over them can fail — and therefore the only way asserting it can mean
+    /// anything. It is also what lets anyone holding this account check R6
+    /// without trusting our assertion: `sold + left == seized`.
+    pub collateral_sold: u128,
     /// Base units of system coin the auction set out to raise.
     pub to_raise: u128,
     /// Base units raised so far.
@@ -181,6 +188,7 @@ mod antumbra_auction {
             config_id,
             collateral_seized: collateral,
             collateral_left: collateral,
+            collateral_sold: 0,
             to_raise,
             raised: 0,
             price,
@@ -253,6 +261,7 @@ mod antumbra_auction {
         }
 
         state.collateral_left -= fill.collateral_out;
+        state.collateral_sold += fill.collateral_out;
         state.raised += fill.paid;
         state.last_seen = now;
         // F2: terminate early the moment the target is reached, rather than
@@ -262,10 +271,19 @@ mod antumbra_auction {
         }
         // R6, asserted rather than assumed. If this ever fails the arithmetic
         // above leaked, and failing the proof is the right outcome.
-        if state.collateral_left + (state.collateral_seized - state.collateral_left)
-            != state.collateral_seized
-        {
+        //
+        // This check used to read `left + (seized - left) != seized`, which is
+        // an identity: it holds for every value of every field, including the
+        // ones a leak would produce, and it was never once going to fire. The
+        // two sides must come from counters that are moved separately, or there
+        // is nothing to compare.
+        if state.collateral_sold + state.collateral_left != state.collateral_seized {
             return Err(SpelError::custom(E_ARITHMETIC, "collateral is not conserved"));
+        }
+        // And the target is a ceiling, not a suggestion: `raised` is only ever
+        // increased by a `paid` the library clamped to what was left to raise.
+        if state.raised > state.to_raise {
+            return Err(SpelError::custom(E_ARITHMETIC, "raised more than the target"));
         }
         write(&mut auction.account, &state)?;
         Ok(SpelOutput::execute(vec![auction, config, bidder], vec![]))

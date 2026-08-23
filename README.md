@@ -7,7 +7,7 @@ in integers that exist on the target.
 cargo test --release
 ```
 
-37 tests green, no dependencies, `#![forbid(unsafe_code)]`, `overflow-checks = true`
+40 tests green, no dependencies, `#![forbid(unsafe_code)]`, `overflow-checks = true`
 in release — the profile that ships, because a debug run exercises different
 arithmetic from the one that executes.
 
@@ -73,8 +73,8 @@ The quotient always fits — only the product does not. So the product is taken 
 256 bits and divided back down in one step, and nothing intermediate is stored.
 `mul_div_floor` and `mul_div_ceil` do that with a widening multiply and a
 restoring division: no `u256` type, no dependency, and the same two functions
-whose differential vectors and zkVM cycle counts already run in CI in the
-sibling crate.
+whose differential vectors and zkVM cycle counts already run in CI in
+[`edenbd1/antumbra-lez`](https://github.com/edenbd1/antumbra-lez).
 
 The discount schedule is linear in the multiplier rather than compounded per
 second. Compounding is what forces `rpower`, and `rpower` is what does not fit.
@@ -112,6 +112,32 @@ two-thousandth of its value.
 asserted directly in `floor_keeps_the_invariant_across_a_long_sequence_of_partial_fills`,
 over 600 awkward partial fills against an escalating discount.
 
+## And the two defects this found in itself
+
+Both came out of reading a live account on the testnet rather than out of a
+design review, which is the argument for driving a thing rather than describing
+it. Both are fixed, and the first build is still deployed so the evidence stays
+fetchable.
+
+**A bid larger than the lot was charged in full.** `quote` clamped the
+collateral handed out to what the lot still held, and went on charging a bid
+that had been priced against a larger lot. The bidder overpaid — and worse, the
+auction recorded `raised == to_raise` and reported itself **fully raised** while
+the collateral it actually sold was worth far less. A shortfall that is never
+booked is one F4's debt auction never hears about. `quote` now re-strikes the
+price when it is the lot that ran out: the bidder pays for the collateral they
+receive, rounded towards the auction, capped at the bid it replaces.
+`a_bid_bigger_than_the_lot_pays_only_for_the_lot` and
+`the_restrike_never_charges_more_than_the_bid_it_replaces` both fail without it.
+
+**And the on-chain R6 assertion was a tautology.** The guest checked
+`left + (seized - left) != seized`, which is an identity — true for every value
+of every field, including the ones a leak would produce. It could never have
+fired. `AuctionState` now carries `collateral_sold`, moved independently of
+`collateral_left`, and the guest compares the two. That also means anyone
+holding the account can check R6 without trusting the assertion:
+`collateral_sold + collateral_left == collateral_seized`.
+
 ## The program, on the public testnet
 
 The auction house is deployed and driven on the public Logos Execution Zone
@@ -119,9 +145,14 @@ testnet. Two digests, and they are not the same number:
 
 | | |
 |---|---|
-| **ImageID** | `5dc0e0881cb7ce3cb055e2c3ab7658f6f6f2747e8e11690e080b91f0167d07cf` |
-| **Deploy transaction** | `c00b9698ae21fcfcff3eb05ec3f8367d1378d6df63627d8aa70082875e6c5e43` |
-| **Block** | 20265 |
+| **ImageID** | `38ab5886d20784c8322d1c6a3595cc8a666568946acb63248bac8ecf1149bd57` |
+| **Deploy transaction** | `ac43ac1a8833f87f623b3346be551ece27da0e3a0c049de3ed86ae4b9607a75b` |
+| **Block** | 20377 |
+
+The first build is at ImageID `5dc0e088…` and deploy `c00b9698…`, block 20265.
+It is left deployed on purpose: one of its accounts holds the output of the
+defect described above, and a finding you can fetch beats a finding you
+describe.
 
 The ImageID is what the program is *called* by — RISC0 derives it from the guest
 ELF, and it is what a driven transaction carries as its `program_id`. The deploy
@@ -139,9 +170,11 @@ WALLET=/path/to/lez/wallet ./scripts/deploy.sh   # deploy
 ./scripts/verify-onchain.sh                      # re-check everything, no setup
 ```
 
-Thirteen checks, four of which are things that must **not** resolve. The whole
-lifecycle, the refusals and the timings are in
-[`DEPLOYMENTS.md`](DEPLOYMENTS.md).
+The script counts its own checks rather than stating a number here, because
+this sentence has already been wrong twice. Some of them are things that must
+**not** resolve — refused instructions, a hash never deployed, an address nobody
+wrote — and they are what make the rest mean anything. The whole lifecycle, the
+refusals and the timings are in [`DEPLOYMENTS.md`](DEPLOYMENTS.md).
 
 Deployment is permissionless and idempotent: identical bytes reproduce the same
 hash, and the script short-circuits rather than submitting again.
@@ -149,7 +182,11 @@ hash, and the script short-circuits rather than submitting again.
 ### What the program does, and what it leaves to the host
 
 Four instructions: `init_config`, `start_auction`, `buy_collateral`,
-`settle_auction`. Two account types: `Config` and `AuctionState`.
+`settle_auction`. Two account types: `Config` and `AuctionState`. The IDL is
+generated from the program source by `spel generate-idl` rather than maintained
+by hand — a field added to an account and forgotten in the IDL decodes every
+later field at the wrong offset, and prints confident nonsense rather than
+failing.
 
 It is the auction house — the state machine and the arithmetic over collateral
 it has been *told* was seized, at a price it was *handed*. It is not the

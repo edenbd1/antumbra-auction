@@ -347,3 +347,82 @@ fn floor_and_ceil_differ_by_exactly_one_when_they_differ() {
         assert!(c == f || c == f + 1);
     }
 }
+
+// ---------------------------------------------------------------------------
+// What the lot running out is allowed to cost
+//
+// These two came out of reading the live testnet auction's account rather than
+// out of a design review: auction #2 sat with 3.947368421052631579 units left
+// and 4,000 still to raise, and the arithmetic said a bid of 4,000 would take
+// all three of those things — the lot, the whole bid, and the shortfall.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn a_bid_bigger_than_the_lot_pays_only_for_the_lot() {
+    // The live second auction: 40 % off at t=600 on a price of 1000, so the
+    // remaining 3.947368421052631579 units are worth 2368.4210526315789474.
+    let a = Auction {
+        collateral_left: 3_947_368_421_052_631_579,
+        to_raise: 4_000 * WAD,
+        schedule: DiscountSchedule {
+            min: 950_000_000_000_000_000,
+            max: 600_000_000_000_000_000,
+            window: 600,
+        },
+    };
+    let fill = a.quote(1_000 * WAD, 4_000 * WAD, 600).unwrap();
+    assert_eq!(fill.collateral_out, 3_947_368_421_052_631_579);
+    assert_eq!(fill.paid, 2_368_421_052_631_578_947_400);
+
+    // And the point of it: the auction closes short, which is what F4 exists
+    // to notice. Charging the full bid would have closed it at exactly the
+    // target and reported no shortfall at all.
+    let after = a.settle(fill).unwrap();
+    assert_eq!(after.collateral_left, 0);
+    assert_eq!(after.to_raise, 4_000 * WAD - 2_368_421_052_631_578_947_400);
+    assert!(after.to_raise > 0, "the shortfall must survive the fill");
+}
+
+#[test]
+fn the_restrike_never_charges_more_than_the_bid_it_replaces() {
+    // Sweep the whole boundary: for every lot size, a bid large enough to clamp
+    // must cost no more than the same bid unclamped, and must still buy the lot.
+    for left in 1u128..400 {
+        let a = Auction {
+            collateral_left: left,
+            to_raise: u128::MAX / 4,
+            schedule: DiscountSchedule {
+                min: WAD,
+                max: WAD,
+                window: 1,
+            },
+        };
+        let bid = 1_000_000u128;
+        let fill = a.quote(3 * WAD, bid, 0).unwrap();
+        assert!(fill.paid <= bid);
+        // Every one of these clamps on the lot — 1e6 buys 333,333 units at a
+        // price of 3 and the lot is under 400 — so every one must be charged at
+        // the struck price and not at the bid. Asserting `paid <= bid` alone
+        // would pass on the unfixed code, which charges exactly `bid`.
+        assert_eq!(fill.collateral_out, left);
+        assert_eq!(fill.paid, left * 3);
+    }
+}
+
+#[test]
+fn a_target_clamp_is_not_a_lot_clamp_and_charges_the_whole_of_it() {
+    // The other clamp must keep its old behaviour: when it is the *target* that
+    // runs out, the bidder pays what is left to raise, in full.
+    let a = Auction {
+        collateral_left: 1_000 * WAD,
+        to_raise: 500 * WAD,
+        schedule: DiscountSchedule {
+            min: WAD,
+            max: WAD,
+            window: 1,
+        },
+    };
+    let fill = a.quote(WAD, 900 * WAD, 0).unwrap();
+    assert_eq!(fill.paid, 500 * WAD);
+    assert_eq!(fill.collateral_out, 500 * WAD);
+}

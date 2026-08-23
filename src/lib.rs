@@ -289,6 +289,14 @@ impl Auction {
     /// sell. Both clamps are the reference's, and both matter: without the
     /// first a bidder overpays into a finished auction, without the second the
     /// auction hands out collateral it does not hold.
+    ///
+    /// When the second clamp bites, the price is re-struck: the bidder pays for
+    /// the collateral they actually receive and not a base unit more. Charging
+    /// the whole bid against a short lot is the failure this re-strike removes,
+    /// and it is not a rounding — on the live testnet auction it would have
+    /// taken 4,000 for a lot worth 2,368 and then reported the target as fully
+    /// raised, hiding the very shortfall that F4's debt auction exists to
+    /// clear.
     pub fn quote(&self, price: u128, bid: u128, elapsed: u64) -> Result<Fill> {
         self.quote_with(price, bid, elapsed, Rounding::Down)
     }
@@ -327,6 +335,17 @@ impl Auction {
             Rounding::Up => mul_div_ceil(paid, WAD, discounted)?,
         };
         let collateral_out = core::cmp::min(raw, self.collateral_left);
+        // Re-strike when the lot, not the target, is what ran out. `paid` was
+        // computed from the bid; if the bidder is only getting `collateral_left`
+        // they must only pay for `collateral_left`. Ceiling, so the re-strike
+        // rounds towards the auction and never below what the collateral is
+        // worth — and capped at the original, since a re-strike may never charge
+        // more than the bid it replaces.
+        let paid = if collateral_out < raw {
+            core::cmp::min(mul_div_ceil(collateral_out, discounted, WAD)?, paid)
+        } else {
+            paid
+        };
         Ok(Fill {
             paid,
             collateral_out,

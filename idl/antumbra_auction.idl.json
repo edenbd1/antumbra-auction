@@ -286,6 +286,10 @@
             "type": "u128"
           },
           {
+            "name": "collateral_sold",
+            "type": "u128"
+          },
+          {
             "name": "to_raise",
             "type": "u128"
           },
