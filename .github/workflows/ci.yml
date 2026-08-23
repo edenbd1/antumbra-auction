@@ -1,0 +1,15 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    name: Tests, and the reference that does not fit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Release, not debug: `overflow-checks = true` is set on the release
+      # profile, and a debug run exercises different arithmetic from the one
+      # that ships. A wrapping bug reaching production past a green debug build
+      # is the failure this ordering exists to prevent.
+      - run: cargo test --release --verbose
+      - run: cargo fmt --check
+      - run: cargo clippy --release -- -D warnings
