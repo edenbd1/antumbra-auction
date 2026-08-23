@@ -155,7 +155,10 @@ no_account 11111111111111111111111111111111 "CONTROL an address nobody wrote"
 
 echo
 echo "  -- what the program refused, which is what the above means anything against --"
-__REFUSALS__
+check "REFUSED clock rewound"      356753e72900be1d0336716fec62b52d2a355d6a02a62227597c242e84e1da26 no
+check "REFUSED settle early"       70318d37773727724421b6011666f4bd9df02f01447cc058f21c8a83c3ec5617 no
+check "REFUSED settle early again" 3865f7c8a30abdad223d660e86ec3a707b47b20afdd509e4cbca81bb6fcfa21c no
+check "REFUSED settle twice"       3b1ed3f50dc5bdb5326e84a9f430e5d1605eff0b570c48a059e2caef9fc20832 no
 check "CONTROL never-deployed"    dededededededededededededededededededededededededededededededede no
 
 echo
