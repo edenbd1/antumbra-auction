@@ -25,6 +25,7 @@ RPC="${SEQUENCER_URL:-https://testnet.lez.logos.co}"
 BIN=artifacts/programs/antumbra_auction.bin
 fail=0
 ran=0
+refused=0
 
 ok()  { printf '  \033[32mok\033[0m    %s\n' "$1"; ran=$((ran+1)); }
 bad() { printf '  \033[31mFAIL\033[0m  %s\n' "$1"; fail=1; ran=$((ran+1)); }
@@ -36,6 +37,7 @@ resolves() {
 }
 
 check() { # label hash expect(yes|no)
+  [ "$3" = no ] && refused=$((refused+1))
   if resolves "$2"; then
     [ "$3" = yes ] && ok "$(printf '%-30s' "$1") ${2:0:16}…" \
                    || bad "$(printf '%-30s' "$1") RESOLVED, and it must not"
@@ -72,12 +74,20 @@ check "init_config"           37581bb093e7e775710e985847f84a5baf5ca0b0709401c837
 check "start_auction"         1379ed3c9df06752c0dfd4749175b50de64d79317274ea2856fbce0abab9986b yes
 check "buy_collateral t=0"    e95fe0d05c3dd009b6df578754f6d0a0332cda482aa42a9c0803915b37117029 yes
 check "buy_collateral t=1800" fd108f3f7e681971d81c3ea7cebb277506b7fa294f205737ca6b5b7e1234ae3e yes
+check "buy that exhausts the lot" 5ad0ab52648edf1de9c0bfce49e9e0d294eb0619bf9e13e2377438524116d0ca yes
+
+echo
+echo "  -- a second configuration, and a second auction under it, at the same time --"
+check "init_config (faster)"  1fdf1a3052d904f9549fc85b8d9cbd708f60f54c36345b1fc33c3f532aeb0de3 yes
+check "start_auction #2"      4a69eaf6d5e963a814c2cab756104a79e3423f9ce861b91024b948b4c5c5f14d yes
+check "buy on auction #2"     961f437162ce144fed0e462a783c8908862e3786a782353f9fb428132dd6d22e yes
 
 echo
 echo "  -- what the program refused, which is what the above means anything against --"
 check "REFUSED clock rewound" 25c6014dbc1a643fedcfda871970ac944ae56807ca706700631e3309ad92d51e no
 check "REFUSED settle early"  d7de1bc3371e78d0072385e852dadbe22edfc5322d7484cca76c864bcbbbc112 no
 check "REFUSED no such auction" a61aed9edd7f838a6c8118238bd7afa5b2af1480ef0541aeda56ff4f2f21cbfd no
+check "REFUSED settle twice"  1a16f15f16e33c91eff87d118015957bf5c5e02c867526bef80701586541b28f no
 check "CONTROL never-deployed"  dededededededededededededededededededededededededededededededede no
 
 echo
@@ -94,8 +104,10 @@ done
 
 echo
 if [ "$fail" -eq 0 ]; then
-  echo "All $ran checks resolve. The two refusals and the never-deployed hash still"
-  echo "do not, which is what makes the rest of them mean something."
+  # Counted, not written down: this sentence said "two" while four refusals were
+  # in the list, which is the drift the whole script exists to prevent.
+  echo "All $ran checks hold. $refused of them are things that must NOT resolve,"
+  echo "and they still do not — which is what makes the rest mean something."
 else
   echo "Something above did not hold." >&2
 fi
