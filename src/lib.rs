@@ -354,5 +354,7 @@ impl Auction {
     }
 }
 
+pub mod liquidation;
+
 #[cfg(test)]
 mod tests;
