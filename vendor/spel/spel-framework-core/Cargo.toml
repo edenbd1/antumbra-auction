@@ -1,0 +1,30 @@
+[package]
+name = "spel-framework-core"
+version = "0.6.0"
+edition = "2021"
+description = "Core types for the SPEL program framework"
+
+[features]
+# `decode` is enabled by default for CLI and FFI consumers.
+# Guest programs that don't need runtime Borsh account decoding can opt out:
+#   spel-framework-core = { ..., default-features = false }
+default = ["decode"]
+decode = ["dep:base58"]
+idl-gen = ["dep:syn", "dep:proc-macro2", "dep:toml"]
+host = ["dep:nssa"]
+
+[dependencies]
+nssa_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "47eba256479f6f785acbd138834340703cd03401", features = ["host"], package = "lee_core" }
+borsh = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+base58 = { version = "0.2", optional = true }
+
+nssa = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "47eba256479f6f785acbd138834340703cd03401", optional = true, package = "lee" }
+
+syn = { version = "2.0", features = ["full", "extra-traits"], optional = true }
+proc-macro2 = { version = "1.0", optional = true }
+toml = { version = "0.8", optional = true }
+

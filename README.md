@@ -7,7 +7,7 @@ in integers that exist on the target.
 cargo test --release
 ```
 
-19 tests, no dependencies, `#![forbid(unsafe_code)]`, `overflow-checks = true`
+37 tests, no dependencies, `#![forbid(unsafe_code)]`, `overflow-checks = true`
 in release — the profile that ships, because a debug run exercises different
 arithmetic from the one that executes.
 
@@ -112,13 +112,89 @@ two-thousandth of its value.
 asserted directly in `floor_keeps_the_invariant_across_a_long_sequence_of_partial_fills`,
 over 600 awkward partial fills against an escalating discount.
 
+## The program, on the public testnet
+
+The auction house is deployed and driven on the public Logos Execution Zone
+testnet. Two digests, and they are not the same number:
+
+| | |
+|---|---|
+| **ImageID** | `5dc0e0881cb7ce3cb055e2c3ab7658f6f6f2747e8e11690e080b91f0167d07cf` |
+| **Deploy transaction** | `c00b9698ae21fcfcff3eb05ec3f8367d1378d6df63627d8aa70082875e6c5e43` |
+| **Block** | 20265 |
+
+The ImageID is what the program is *called* by — RISC0 derives it from the guest
+ELF, and it is what a driven transaction carries as its `program_id`. The deploy
+transaction hash is `SHA256(u32_le(len) ‖ bytecode)` over the packaged binary,
+which is a different thing entirely.
+
+That second one is knowable **before** submitting: a deployment carries only the
+bytecode, with no signer and no nonce, so it is a pure content hash. Which is the
+whole verification strategy — compute it, deploy, then ask the sequencer whether
+that hash resolves. The wallet's exit code and its output say nothing useful
+either way.
+
+```bash
+WALLET=/path/to/lez/wallet ./scripts/deploy.sh
+```
+
+Deployment is permissionless and idempotent: identical bytes reproduce the same
+hash, and the script short-circuits rather than submitting again.
+
+### What the program does, and what it leaves to the host
+
+Four instructions: `init_config`, `start_auction`, `buy_collateral`,
+`settle_auction`. Two account types: `Config` and `AuctionState`.
+
+It is the auction house — the state machine and the arithmetic over collateral
+it has been *told* was seized, at a price it was *handed*. It is not the
+liquidation trigger, which needs a host CDP with positions, and it does not move
+tokens yet, which needs a payer and a pinned transfer program. Both are the next
+instruction rather than this one, and the README says so rather than letting a
+reader infer otherwise.
+
+### One deployer, one config, because the id is the code
+
+On LEZ a program's id **is** the ImageID of its guest, so two deployers of
+byte-identical code get the same program id. RFP-014's *"Each product deploys its
+own configured instance of the program"* therefore cannot mean a separate
+deployment unless the code differs.
+
+It means a distinct config account under one shared program, which is what
+`init_config` creates. That is also the better reading: it is what makes the
+RFP's own stated rationale — shared audits, shared liquidator tooling — actually
+true rather than aspirational.
+
+### Time is an argument, so it is guarded
+
+`now` is supplied by the caller. A caller who can rewind it can re-price a fill
+at an earlier, smaller discount, so every instruction that reads the clock
+refuses a `now` below one already honoured, and `AuctionState` carries
+`last_seen` for that alone.
+
 ## What this is not, yet
 
-This is the arithmetic, not the program. There is no SPEL program, no deployed
-instance, no host CDP interface, no debt or surplus auction, and no price
-source. The auction house is the piece that can be built and proven before any
-of RFP-014's platform dependencies land, which is why it is the piece that
-exists first.
+The auction house is deployed and driven. What is **not** here, and is not
+claimed to be:
+
+- **The liquidation trigger.** `src/liquidation.rs` decides health and the
+  liquidator's reward, and both are tested, but nothing on chain seizes a
+  position — that needs a host CDP with positions in it.
+- **Value movement.** The program accounts for collateral and coin; it does not
+  yet debit a payer or credit a bidder. That needs a payer account and a pinned
+  transfer program, and it is the next instruction rather than this one.
+- **The debt and surplus auctions on chain.** `src/settlement.rs` implements
+  both and the spec licenses a mock token for them, but they are not yet
+  instructions.
+- **A price source.** `Price` carries an observation time and staleness pauses
+  one collateral type, which is what RFP-014 actually owns. Where the number
+  comes from is RFP-019's or RFP-020's problem, and neither has delivered a
+  milestone.
+
+Each of those is a stand-in away rather than a wall, and the distinction is
+worth keeping: a stand-in written against a published interface is a conformance
+test of that interface, and a claim that a real counterparty will behave as
+assumed is not.
 
 ## Licence
 

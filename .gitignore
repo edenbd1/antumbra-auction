@@ -1,2 +1,13 @@
 target/
-Cargo.lock
+
+# The library's lockfile is not committed — it is a library, and its consumers
+# resolve their own.
+/Cargo.lock
+
+# The guest's lockfile IS committed, deliberately. `cargo risczero build` runs
+# `cargo build --locked`, so the build needs it to exist; and the pin that makes
+# the build work at all — enum-ordinalize held at 4.3.2, because 4.4.2 declares
+# MSRV 1.89 against the guest toolchain's rustc 1.88 — exists nowhere else. Left
+# out, a fresh clone resolves a newer version and fails, with nothing in the
+# tree to explain why.
+!programs/*/Cargo.lock
