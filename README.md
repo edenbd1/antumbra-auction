@@ -7,7 +7,7 @@ in integers that exist on the target.
 cargo test --release
 ```
 
-37 tests, no dependencies, `#![forbid(unsafe_code)]`, `overflow-checks = true`
+37 tests green, no dependencies, `#![forbid(unsafe_code)]`, `overflow-checks = true`
 in release — the profile that ships, because a debug run exercises different
 arithmetic from the one that executes.
 
