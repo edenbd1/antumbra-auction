@@ -10,7 +10,18 @@ jobs:
       # profile, and a debug run exercises different arithmetic from the one
       # that ships. A wrapping bug reaching production past a green debug build
       # is the failure this ordering exists to prevent.
-      - run: cargo test --release --verbose
+      - name: Tests
+        run: |
+          set -o pipefail
+          cargo test --release --verbose 2>&1 | tee /tmp/tests.txt
+
+      # The README opens by saying how many tests are green, and that number is
+      # quoted outward. Nothing compared it to the suite: a suite that grows does
+      # not fail, it simply runs more tests than the sentence about it admits.
+      # `set -o pipefail` above is load-bearing — without it `tee` returns zero and
+      # a failing suite reaches this step wearing a green tick.
+      - name: The README's test count is what the suite actually passes
+        run: ./scripts/check-test-count.py - < /tmp/tests.txt
       - run: cargo fmt --check
       - run: cargo clippy --release -- -D warnings
 
