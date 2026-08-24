@@ -29,6 +29,20 @@ That a transaction is the *right* one. A hash can exist and still be the wrong
 citation, and no amount of resolving will say so. This closes the cheaper half:
 that it exists at all.
 
+--explorer ALSO ASKS THE EXPLORER
+
+`getTransaction` says the node has it. It does not say a reader clicking the
+link sees anything: the explorer is a separate index and reaches a transaction
+about an hour and three quarters after the sequencer does. With `--explorer`
+each transaction page is fetched too, and judged on size — the page for a hash
+that cannot exist is a ~2.4 kB shell, and any real one is several times that.
+
+The threshold is not trusted, it is measured on every run: an impossible hash is
+fetched first, and if THAT comes back looking like a found transaction the whole
+comparison is meaningless and this aborts rather than reporting verdicts against
+a baseline that says nothing. That control is the reason this can use a size at
+all instead of driving a browser.
+
 NO SKIP PATH, AND TWO KINDS OF FAILURE. If the node cannot be reached this exits
 non-zero and says the node was unreachable — it does not report the references
 as missing, because "I could not look" and "it is not there" are different
@@ -85,8 +99,28 @@ def call(method, param):
     return body.get("result"), True
 
 
+def page_size(url):
+    r = subprocess.run(["curl", "-sS", "-o", "/dev/null", "-w", "%{size_download}",
+                        "-L", "--max-time", "45", url], capture_output=True, text=True)
+    try:
+        return int(r.stdout.strip())
+    except ValueError:
+        return None
+
+
+def explorer_baseline():
+    """What a page for a hash that cannot exist looks like. Measured, not assumed."""
+    impossible = "ff" * 32
+    n = page_size("https://explorer.testnet.lez.logos.co/transaction/" + impossible)
+    if n is None:
+        print("the explorer could not be reached, so no page could be checked.")
+        return None
+    return n
+
+
 def main():
     verbose = "--list" in sys.argv
+    want_explorer = "--explorer" in sys.argv
     refs = {}
     for doc in documents():
         with open(os.path.join(ROOT, doc), encoding="utf-8", errors="replace") as fh:
@@ -128,6 +162,37 @@ def main():
 
     print("resolved %d of %d explorer reference(s) across %d document(s)"
           % (resolved, len(refs), len(documents())))
+
+    if want_explorer and not failures:
+        base = explorer_baseline()
+        if base is None:
+            return 1
+        # A found page must be clearly bigger than the not-found shell. If the
+        # shell is not small, the size says nothing and neither does this gate.
+        if base > 3500:
+            print("\nthe control page for a hash that cannot exist came back at %d bytes.\n"
+                  "That is not the small shell this comparison depends on, so a size\n"
+                  "cannot separate found from not-found here and no verdict below\n"
+                  "would mean anything. Aborting rather than reporting one." % base)
+            return 1
+        print("explorer control: a hash that cannot exist renders %d bytes" % base)
+        thin = []
+        for (kind, key), sites in sorted(refs.items()):
+            if kind != "tx":
+                continue
+            n = page_size("https://explorer.testnet.lez.logos.co/transaction/" + key)
+            if n is None or n <= base * 1.3:
+                thin.append("%s renders %s bytes on the explorer, against a %d-byte "
+                            "not-found shell — the node has it, the index does not "
+                            "show it yet; linked at %s"
+                            % (key, n, base, ", ".join(sites)))
+        if thin:
+            print("\n%d transaction(s) the node has and the explorer does not show:\n"
+                  % len(thin))
+            for t in thin:
+                print("  " + t)
+            return 1
+        print("every transaction page renders well above the not-found shell")
     if failures:
         print("\n%d reference(s) a reader could not follow:\n" % len(failures))
         for f in failures:

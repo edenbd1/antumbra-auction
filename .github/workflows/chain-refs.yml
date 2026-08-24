@@ -34,7 +34,11 @@ jobs:
       - name: Resolve every reference through the node
         run: |
           set -e -o pipefail
-          ./scripts/check-chain-refs.py | tee refs.out
+          # The scheduled run also asks the explorer, which is a separate index
+          # about an hour and three quarters behind the sequencer. On a push that
+          # would turn an indexing lag into a red commit; once a day it catches a
+          # reference the node has and the index has stopped showing.
+          ./scripts/check-chain-refs.py ${{ github.event_name == 'schedule' && '--explorer' || '' }} | tee refs.out
           # The coverage floor. "resolved 0 of 0" and "resolved 30 of 30" are the
           # same exit code, and the first one means the matcher stopped seeing
           # the documents rather than that the documents got cleaner.
