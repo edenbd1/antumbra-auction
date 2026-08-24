@@ -1,0 +1,13 @@
+[package]
+name    = "auction-guest"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+risc0-zkvm       = { version = "3.0.5", default-features = false, features = ["std"] }
+antumbra-auction = { path = "../../.." }
+
+[profile.release]
+overflow-checks = true
+
+[workspace]

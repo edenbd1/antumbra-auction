@@ -11,3 +11,12 @@ target/
 # out, a fresh clone resolves a newer version and fails, with nothing in the
 # tree to explain why.
 !programs/*/Cargo.lock
+
+# The zkVM harness's lockfiles are committed for the same class of reason, and
+# one more: the cycle counts in zkvm/CYCLES.md are a function of the risc0
+# version as much as of our code. `risc0-zkvm = "3.0.5"` is a caret range, so an
+# unlocked resolve picks up 3.0.6 and the published figures shift by work nobody
+# here wrote. CI would then fail its drift check for a drift that is not ours.
+!zkvm/Cargo.lock
+!zkvm/methods/guest/Cargo.lock
+

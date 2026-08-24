@@ -7,9 +7,20 @@ in integers that exist on the target.
 cargo test --release
 ```
 
-40 tests green, no dependencies, `#![forbid(unsafe_code)]`, `overflow-checks = true`
+41 tests green, no dependencies, `#![forbid(unsafe_code)]`, `overflow-checks = true`
 in release — the profile that ships, because a debug run exercises different
 arithmetic from the one that executes.
+
+One of those tests is differential: `tests/gen_auction_vectors.py` computes the
+quote a second time, in Python's arbitrary-precision integers, and 3,011 vectors
+compare the two. What it covers is the composition — the discount multiplier,
+both clamps, and the re-strike that fires when the lot rather than the target
+runs out — because that is where a real defect lived. CI regenerates the vectors
+and diffs them, so the file cannot be edited to match a broken implementation.
+
+`zkvm/CYCLES.md` is measured, not asserted: the guest runs under the RISC0
+executor and CI fails if a published figure has drifted. One whole bid — quote
+then settle — is **27,753** cycles, 0.083 % of the session budget.
 
 ## What this found
 

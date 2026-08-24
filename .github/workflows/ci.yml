@@ -23,3 +23,48 @@ jobs:
           python3 tests/gen_auction_vectors.py > /tmp/quote.txt
           diff -q /tmp/quote.txt tests/vectors/quote.txt
           echo "the oracle reproduces its vectors byte for byte"
+
+  # The published cycle table is quoted from a grant proposal. A figure that
+  # drifts is a public claim that stopped being true, and nobody notices until a
+  # reader reproduces it — so it is re-measured here rather than trusted.
+  cycles:
+    name: Cycle counts still match CYCLES.md
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - name: RISC0
+        run: |
+          curl -L https://risczero.com/install | bash
+          echo "$HOME/.risc0/bin" >> "$GITHUB_PATH"
+
+      - name: Guest toolchain
+        run: rzup install
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zkvm/target
+          key: zkvm-${{ hashFiles('zkvm/**/Cargo.toml', 'src/**') }}
+
+      - name: Measure, and fail if the published table has drifted
+        working-directory: zkvm
+        run: cargo run --release | tee /tmp/cycles.txt && python3 verify_cycles.py < /tmp/cycles.txt
+
+      - name: Publish the table to the run summary
+        if: always()
+        run: |
+          {
+            echo '## Measured cycle counts'
+            echo
+            sed -n '/^| op |/,/^$/p' /tmp/cycles.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+
