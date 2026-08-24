@@ -13,3 +13,13 @@ jobs:
       - run: cargo test --release --verbose
       - run: cargo fmt --check
       - run: cargo clippy --release -- -D warnings
+
+      # The committed vectors must still be what the oracle produces. Without
+      # this, the vector file could be edited to match a broken implementation
+      # and the differential test would go on passing — which is the one failure
+      # a differential test cannot catch about itself.
+      - name: The committed vectors still match their generator
+        run: |
+          python3 tests/gen_auction_vectors.py > /tmp/quote.txt
+          diff -q /tmp/quote.txt tests/vectors/quote.txt
+          echo "the oracle reproduces its vectors byte for byte"
