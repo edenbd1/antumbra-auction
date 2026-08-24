@@ -1,0 +1,43 @@
+# Documents are checked against the chain they cite, not against themselves.
+#
+# A transaction hash is sixty-four characters of hex and nothing about reading
+# one tells you it is real. This exists because a hash was once assembled here
+# from a correct prefix and a correct suffix with fifty-six invented characters
+# in between, and every other gate in this repository passed over it.
+#
+# Triggered on markdown pushes rather than on every commit: a fabricated hash
+# arrives in a document, and gating unrelated code on the testnet being up would
+# make an outage look like a defect. The daily run catches a reference that stops
+# resolving without anyone touching the documents.
+name: Explorer links point at something the chain has
+
+on:
+  push:
+    paths:
+      - '**.md'
+      - 'scripts/check-chain-refs.py'
+      - '.github/workflows/chain-refs.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '35 6 * * *'
+
+concurrency:
+  group: chain-refs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refs:
+    name: Every explorer link resolves
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve every reference through the node
+        run: |
+          set -e -o pipefail
+          ./scripts/check-chain-refs.py | tee refs.out
+          # The coverage floor. "resolved 0 of 0" and "resolved 30 of 30" are the
+          # same exit code, and the first one means the matcher stopped seeing
+          # the documents rather than that the documents got cleaner.
+          n=$(sed -n 's/^resolved \([0-9][0-9]*\) of .*/\1/p' refs.out)
+          [ -n "$n" ] || { echo "it printed no coverage line"; exit 1; }
+          [ "$n" -ge 11 ] || { echo "it resolved $n reference(s), fewer than the 11 this repository ships"; exit 1; }
