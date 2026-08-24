@@ -20,7 +20,7 @@ finding you can fetch is worth more than a finding you describe.
 | | first build | the one to use |
 |---|---|---|
 | ImageID | `5dc0e0881cb7ce3cb055e2c3ab7658f6f6f2747e8e11690e080b91f0167d07cf` | `38ab5886d20784c8322d1c6a3595cc8a666568946acb63248bac8ecf1149bd57` |
-| Deploy transaction | `c00b9698…5e6c5e43`, block 20265 | [`ac43ac1a…9607a75b`](https://explorer.testnet.lez.logos.co/transaction/ac43ac1a8833f87f623b3346be551ece27da0e3a0c049de3ed86ae4b9607a75b), block 20377 |
+| Deploy transaction | [`c00b9698…5e6c5e43`](https://explorer.testnet.lez.logos.co/transaction/c00b9698ae21fcfcff3eb05ec3f8367d1378d6df63627d8aa70082875e6c5e43), block 20265 | [`ac43ac1a…9607a75b`](https://explorer.testnet.lez.logos.co/transaction/ac43ac1a8833f87f623b3346be551ece27da0e3a0c049de3ed86ae4b9607a75b), block 20377 |
 | Artifact | 433,112 bytes | `artifacts/programs/antumbra_auction.bin`, 435,440 bytes |
 
 **Two digests, not one.** The **ImageID** is what the program is called by —

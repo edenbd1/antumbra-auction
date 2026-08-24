@@ -156,11 +156,13 @@ testnet. Two digests, and they are not the same number:
 
 | | |
 |---|---|
+| **Freeze commit** | [`a961bb3`](https://github.com/edenbd1/antumbra-auction/commit/a961bb3) |
 | **ImageID** | `38ab5886d20784c8322d1c6a3595cc8a666568946acb63248bac8ecf1149bd57` |
-| **Deploy transaction** | `ac43ac1a8833f87f623b3346be551ece27da0e3a0c049de3ed86ae4b9607a75b` |
+| **Deploy transaction** | [`ac43ac1a…9607a75b`](https://explorer.testnet.lez.logos.co/transaction/ac43ac1a8833f87f623b3346be551ece27da0e3a0c049de3ed86ae4b9607a75b) |
 | **Block** | 20377 |
 
-The first build is at ImageID `5dc0e088…` and deploy `c00b9698…`, block 20265.
+The first build is [`be24855`](https://github.com/edenbd1/antumbra-auction/commit/be24855)
+— ImageID `5dc0e088…`, deploy [`c00b9698…5e6c5e43`](https://explorer.testnet.lez.logos.co/transaction/c00b9698ae21fcfcff3eb05ec3f8367d1378d6df63627d8aa70082875e6c5e43), block 20265.
 It is left deployed on purpose: one of its accounts holds the output of the
 defect described above, and a finding you can fetch beats a finding you
 describe.
