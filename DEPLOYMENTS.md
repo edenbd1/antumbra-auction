@@ -139,8 +139,9 @@ preconfigured amount of blocks"* and nothing else.
 **A refusal costs a full proof: 430 s, against 62 s for a fill.** That number is
 a design constraint, not trivia. A liquidator bot cannot probe by trying — seven
 minutes and a proof per rejected attempt, with no diagnostic. It has to read
-account state before submitting, which is precisely what RFP-014 believed
-LP-0012's events had made unnecessary.
+account state before submitting and send only what the arithmetic says will be
+accepted — the discipline an event or receipt mechanism would have made
+unnecessary, and this chain offers neither.
 
 ## The explorer lags the sequencer
 
