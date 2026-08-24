@@ -28,6 +28,12 @@ import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# CI sets CARGO_TERM_COLOR=always. Cargo paints its `Running` banner and leaves
+# `test result:` alone, so this parser happens to survive colour — but "happens
+# to" is not a property. A sibling gate anchored on the painted line matched
+# nothing on a runner, summed an empty map to zero, and accused a correct README
+# of being wrong. Stripping first costs nothing and removes the coincidence.
+ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 RESULT = re.compile(r"^test result: ok\. (\d+) passed", re.M)
 # The sentence this gate defends. Anchored on "tests green" rather than any
 # number, so a README that drops the claim entirely fails here rather than
@@ -53,12 +59,12 @@ def main():
     claimed = int(claims[0])
 
     if len(sys.argv) > 1 and sys.argv[1] == "-":
-        out = sys.stdin.read()
+        out = ANSI.sub("", sys.stdin.read())
         rc = 0
     else:
         r = subprocess.run(["cargo", "test", "--release"], cwd=ROOT,
                            capture_output=True, text=True)
-        out, rc = r.stdout + r.stderr, r.returncode
+        out, rc = ANSI.sub("", r.stdout + r.stderr), r.returncode
         if rc != 0:
             print("`cargo test --release` exited %d. A suite that does not build passes\n"
                   "zero tests, and zero against a README is a mismatch about the wrong\n"
