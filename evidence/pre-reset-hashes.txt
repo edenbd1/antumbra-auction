@@ -1,0 +1,18 @@
+# Transactions these documents cite that were on the public LEZ testnet before
+# it was reset on 2026-09-08 (its current genesis block is dated 13:33 UTC that
+# day). They are kept as the record of what ran, and scripts/check-chain-refs.py
+# requires each of them NOT to resolve: a hash listed here that the chain does
+# have is misfiled, and a hash that is in neither this list nor on the chain is
+# invented. Nothing live may be listed here. Re-drive the program and its hashes
+# leave this file.
+0871332b40f5974c9ec81935641eac4b92f6b20a7c30b2e72a8115f6835d147f
+260b0e5af35e850bab621cfecaa5196c7ff534c1b867eabffdad032f60228d8b
+3a5941a2dfe5b24db331005d9e50027f174992037d90096d90cc18f635190b9d
+53004d4c5b5bf1582f7df191fa15dfe68e4bd3f18cb2d4c6f8f7e915bde1fa8e
+559ef1a16ce9d1c1e99417b30300f9291aef2b6f213acb096e1d5f2c27df8a74
+66fe3871ccc9a5838bdc437d0a228c5af35e9f2d0a1ef4288f35ff20639fec60
+887c7b7e43c98265ff1c671b080c077b9138dbae23df73481f433e868ec95398
+a63aa5702e219b834abf9e9796ae3e72659627e791261f560fa0c660af777d65
+ac43ac1a8833f87f623b3346be551ece27da0e3a0c049de3ed86ae4b9607a75b
+c00b9698ae21fcfcff3eb05ec3f8367d1378d6df63627d8aa70082875e6c5e43
+e46fb1acefa644119e728980e64c82eab1a7f6ae5cf5e9ef1cfe5e5f77555ae2

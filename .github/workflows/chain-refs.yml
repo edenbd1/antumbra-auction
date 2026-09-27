@@ -42,6 +42,11 @@ jobs:
           # The coverage floor. "resolved 0 of 0" and "resolved 30 of 30" are the
           # same exit code, and the first one means the matcher stopped seeing
           # the documents rather than that the documents got cleaner.
-          n=$(sed -n 's/^resolved \([0-9][0-9]*\) of .*/\1/p' refs.out)
+          # Live references plus those declared pre-reset in
+          # evidence/pre-reset-hashes.txt (which the script requires NOT to
+          # resolve): both are references the matcher saw and checked.
+          live=$(sed -n 's/^resolved \([0-9][0-9]*\) of .*/\1/p' refs.out)
+          gone=$(sed -n 's/^\([0-9][0-9]*\) more are declared pre-reset.*/\1/p' refs.out)
+          n=$(( ${live:-0} + ${gone:-0} ))
           [ -n "$n" ] || { echo "it printed no coverage line"; exit 1; }
           [ "$n" -ge 11 ] || { echo "it resolved $n reference(s), fewer than the 11 this repository ships"; exit 1; }

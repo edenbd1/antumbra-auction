@@ -43,6 +43,14 @@ comparison is meaningless and this aborts rather than reporting verdicts against
 a baseline that says nothing. That control is the reason this can use a size at
 all instead of driving a browser.
 
+A RESET IS DECLARED, NOT IGNORED
+
+The testnet is reset from time to time, and the documents keep the record of
+what ran on the chain it replaced. Those hashes are listed, with the date, in
+evidence/pre-reset-hashes.txt, and for them the check is inverted: each must NOT
+resolve. So a live reference cannot be hidden in the list, a pre-reset one cannot
+be passed off as live, and a hash in neither place still fails as invented.
+
 NO SKIP PATH, AND TWO KINDS OF FAILURE. If the node cannot be reached this exits
 non-zero and says the node was unreachable — it does not report the references
 as missing, because "I could not look" and "it is not there" are different
@@ -118,8 +126,17 @@ def explorer_baseline():
     return n
 
 
+def pre_reset():
+    path = os.path.join(ROOT, "evidence", "pre-reset-hashes.txt")
+    if not os.path.exists(path):
+        return set()
+    with open(path, encoding="utf-8") as fh:
+        return {l.strip().lower() for l in fh if l.strip() and not l.startswith("#")}
+
+
 def main():
     verbose = "--list" in sys.argv
+    archived = pre_reset()
     want_explorer = "--explorer" in sys.argv
     refs = {}
     for doc in documents():
@@ -136,7 +153,7 @@ def main():
               "can look up is asserted rather than checkable.")
         return 1
 
-    failures, resolved, short = [], 0, 0
+    failures, resolved, short, gone = [], 0, 0, 0
     for (kind, key), sites in sorted(refs.items()):
         if kind == "tx" and len(key) != 64:
             # A truncated hash in a URL cannot be resolved and cannot be
@@ -152,6 +169,14 @@ def main():
                   "checked. This gate has no skip path: passing here without having\n"
                   "looked is the failure it exists to prevent." % RPC)
             return 1
+        if key in archived:
+            if result:
+                failures.append("%s %s is listed in evidence/pre-reset-hashes.txt as from "
+                                "the replaced chain, but this chain has it; linked at %s"
+                                % (kind, key, ", ".join(sites)))
+            else:
+                gone += 1
+            continue
         if result:
             resolved += 1
             if verbose:
@@ -160,8 +185,16 @@ def main():
             failures.append("%s %s does not exist on this chain, and is linked at %s"
                             % (kind, key, ", ".join(sites)))
 
+    stale = archived - {k for (_, k) in refs}
+    if stale:
+        failures.append("%d hash(es) in evidence/pre-reset-hashes.txt are no longer cited "
+                        "anywhere; remove them so the list stays a statement about the "
+                        "documents: %s" % (len(stale), ", ".join(sorted(stale))))
+
     print("resolved %d of %d explorer reference(s) across %d document(s)"
-          % (resolved, len(refs), len(documents())))
+          % (resolved, len(refs) - gone, len(documents())))
+    print("%d more are declared pre-reset in evidence/pre-reset-hashes.txt, and "
+          "none of them resolves, as declared" % gone)
 
     if want_explorer and not failures:
         base = explorer_baseline()
@@ -178,7 +211,7 @@ def main():
         print("explorer control: a hash that cannot exist renders %d bytes" % base)
         thin = []
         for (kind, key), sites in sorted(refs.items()):
-            if kind != "tx":
+            if kind != "tx" or key in archived:
                 continue
             n = page_size("https://explorer.testnet.lez.logos.co/transaction/" + key)
             if n is None or n <= base * 1.3:
@@ -198,7 +231,11 @@ def main():
         for f in failures:
             print("  " + f)
         return 1
-    print("every explorer link points at something this chain has")
+    if gone:
+        print("every live explorer link points at something this chain has, and "
+              "every declared pre-reset one does not")
+    else:
+        print("every explorer link points at something this chain has")
     return 0
 
 
