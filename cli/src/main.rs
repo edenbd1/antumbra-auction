@@ -261,13 +261,34 @@ impl Ctx {
     /// every attempt is looked for before the next is sent, and all of them
     /// are reported.
     async fn send(&self, op: &str, ix: &Instruction, rows: Vec<ProgramShardSelector>, signers: &[AccountId], watch: AccountId) -> Result<()> {
+        self.send_at(op, ix, None, rows, signers, watch).await
+    }
+
+    /// `send` for an instruction that names a time. When the time was given
+    /// relative to the chain's clock (`now…`), every attempt after the first
+    /// names it afresh: an opening is valid only in `[now, now + 2 min)`, so
+    /// an attempt resent five minutes later with the first attempt's time
+    /// would be refused for a reason that has nothing to do with the auction.
+    /// Attempts still share the payer's nonce, so at most one lands.
+    async fn send_at(&self, op: &str, ix: &Instruction, retime: Option<&str>, rows: Vec<ProgramShardSelector>, signers: &[AccountId], watch: AccountId) -> Result<()> {
         let program = self.program()?;
         let before = self.shard(watch, program).await?;
-        let data = Program::serialize_instruction(ix.clone())?;
+        let mut ix = ix.clone();
         let mut hashes = vec![];
         let mut found = None;
         for attempt in 1..=3 {
-            match self.wallet().send_pub_tx_paid_by(self.mentions(rows.clone(), signers), data.clone(), program, self.payer).await {
+            if attempt > 1 {
+                if let Some(spec) = retime.filter(|s| s.starts_with("now")) {
+                    let t = self.time(spec).await?;
+                    match &mut ix {
+                        Instruction::StartAuction { now, .. } | Instruction::BuyCollateral { now, .. } => *now = t,
+                        _ => {}
+                    }
+                    eprintln!("{op}: attempt {attempt} names {t}");
+                }
+            }
+            let data = Program::serialize_instruction(ix.clone())?;
+            match self.wallet().send_pub_tx_paid_by(self.mentions(rows.clone(), signers), data, program, self.payer).await {
                 Ok(h) => hashes.push(h),
                 Err(e) if hashes.is_empty() => {
                     println!("{}", serde_json::json!({"op": op, "label": self.label, "verdict": "rejected", "error": format!("{e:?}")}));
@@ -500,6 +521,7 @@ async fn run(mut ctx: Ctx, cmd: Cmd) -> Result<()> {
             if !ctx.force && c.admin != admin {
                 bail!("{admin} is not this config's admin ({}); use --force to send anyway", c.admin);
             }
+            let at_spec = at.clone();
             let at = ctx.time(&at).await?;
             let ix = Instruction::StartAuction {
                 auction_id: aid,
@@ -512,7 +534,7 @@ async fn run(mut ctx: Ctx, cmd: Cmd) -> Result<()> {
                 max_multiplier: max_multiplier.unwrap_or(c.max_multiplier),
                 window: c.window,
             };
-            ctx.send("start", &ix, core::rows::start_auction(&p, &aid, &cid, admin), &[admin], auction_account(&p, &aid)).await?;
+            ctx.send_at("start", &ix, Some(&at_spec), core::rows::start_auction(&p, &aid, &cid, admin), &[admin], auction_account(&p, &aid)).await?;
         }
         Cmd::Buy { auction_id, bid, at, bidder } => {
             let p = ctx.program()?;

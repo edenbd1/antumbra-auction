@@ -1,0 +1,42 @@
+# run against https://testnet.lez.logos.co, 2026-10-15T09:15:12Z
+# program ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7 dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f
+# payer 9nqn7xA7z54QZPHs8wWn5VzTeXTgbwq8SREr38tVK9aw admin 9nqn7xA7z54QZPHs8wWn5VzTeXTgbwq8SREr38tVK9aw bidder 6LJScXpEf6Q2xNjAT2oqBncgdfHZ1agFFkasgXNC3nFV other 5LwEVr28hLrZxRURnfK399akHaRcSmowVms1hZqxmGRS
+init-a	applied	applied	15515	30d33944d412b9bc518b3f57c5ae95f2d903cbd731c013cdc13811018c9f8e64
+# check ok: config A names its admin = 9nqn7xA7z54QZPHs8wWn5VzTeXTgbwq8SREr38tVK9aw
+init-a-again	refused	reverted	15521	c2cb5546fd9814278a86ac6d99c94eb6d8b0f5f43731251f6fb9cf632552b260
+init-bad-schedule	refused	reverted	15528	4280e56ce0b859432e191415fdb19e7a964fc408fe8d9524392903deb9b4930e
+init-b	applied	applied	15534	ce4402a37d3f694a10b4053a978cc4110334ebc796b28d52402dc27870c85b7a
+start-by-non-admin	refused	reverted	15544	516ad3c194e15b34efd4a56b14e8865a53cb666de4ecdc8caeff18cf634e3feb
+start-wrong-schedule	refused	reverted	15544	f17c7d7d4c6ee0e9ca7519930a22598b6119b464c81ea46aa51fd59bc20753e1
+# attempts start-wrong-schedule f17c7d7d4c6ee0e9ca7519930a22598b6119b464c81ea46aa51fd59bc20753e1 3e86d685c6eb21899c47fcb1427eace2cb4a729087fe24ace42dd88e9ab31b19 e1a3b0a289c9bf0237f82011bc497a0c221ae333622460ec1d24e62ac2baf2b5
+start-empty-lot	refused	reverted	15629	62475cf14945272db523e502b95cca3a1b07ac8d0bfa46e7c6fe21cb1b0f1f3b
+# attempts start-empty-lot f376e2cff16c00a0081a9fbfa14522f20f153de5f6fb210e86cdbeea3cb2623c 62475cf14945272db523e502b95cca3a1b07ac8d0bfa46e7c6fe21cb1b0f1f3b
+# check ok: nothing opened by the refusals = 
+start	applied	applied	15630	82283f8e5c38b904adf4e77c5fbd32c897a4fed3c457248c5747867af32192d6
+# check ok: the lot holds what was seized = 10000000000000000000
+start-again	refused	reverted	15636	94fb9097405af82ec6c5ab745742c80ed1501f05625499a66426ceb4728fd9b3
+bid-too-small	refused	reverted	15640	3908c322ccf294dae33557184b95154cc7824140391896da96bfdaf09eab90f2
+buy-at-open	applied	applied	15641	f29c4a7ec1d7983e144640bdc2bcc396ac116f5f03bf3b74e021fcce5a18c774
+buy-60s-later	applied	applied	15647	25a76e958719643419f559924abe9492a2f60d96bcd89bc4a024b34be6433e2e
+# check ok: the same bid bought more collateral 60 s later = True
+bid-backdated	refused	reverted	15653	4f0655380653de02d99eecea3450ae47f068ec4058f4e7d70f0f46ecc79f6bad
+settle-unfinished	refused	reverted	15659	20988dcf4493fbbd05244c76e9ff679aa69544bf0aa652ca9358682e5301cb59
+buy-out	applied	applied	15660	6c2e4a12433219eb58812c1de98f301de7849f4f6528a0984a34e6b88a6c85ab
+# check ok: collateral left = 0
+# check ok: sold + left == seized (R6, from the account) = True
+# check ok: settled by the last fill = 1
+# check ok: a shortfall is booked, not hidden = True
+# check ok: raised is the library's figure = 16569594129786746160000
+settle-twice	refused	reverted	15661	73b1ef888a40bf18e44ca3cd05a97bb57329aba86faa6a9f5273b276536bf022
+bid-after-settle	refused	reverted	15673	ce4467466ba1e2763cd53ab1116dd7f81466301dcb48f20f2298409bb33a3bf0
+start-y	applied	applied	15681	7a6a67ae45d8ce9d844c61cffe3a965a117f212bd90170b598c5fe9394b52029
+buy-target	applied	applied	15686	defa399f89e42f1d0ffd0f61a74cca7bd6c775ae4719635b26368e5e0b5927e6
+# check ok: raised exactly the target, the bid clamped = 2000000000000000000000
+# check ok: settled = 1
+bid-nowhere	refused	reverted	15691	05e0db5c8576ae2e4d71aac7b8f96965516d747bbe9031b1ed8e9023c3fd9b57
+# final Fcu7EcJqRJtxHyHRccvcen93MkXXuw5DiPShm98nmp5F ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7 392f2a13bcf2776b11b54ca6c1c5093e353b0efbf328e5a7b6cf90b7fe225c34
+# final AEyYGRGeVKyBhtfU46cF9uEygXJ7AVgkMoBwcUyUDLaw ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7 dbafc5f7d70580ffb955215a7ec471da9dbe272d4932cf5ca9dbb8516437ff7d
+# final BNa27Uup1PA5WLHkcd9ZojLZCn3XbZo2REY7TvrQUFSH ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7 009bc468d73f345c4b1d6996a338aa8108349a2ebec6c754e4bdfe5ba7f3766d
+# final AWh1f5t6cv4NQGjbhp92dV2fpmaNptEsZiJnan3EMowu ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7 8b7603de8c9bd1d95f15a32ab9519ce50b5dc34afdadbc576a774f564b9b568a
+# moved init-b: recorded in block 15529, in block 15534 at the end of the run
+# moved start-by-non-admin: recorded in block 15531, in block 15544 at the end of the run

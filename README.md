@@ -31,9 +31,11 @@ host tests and 16 tests of the committed binary through `lee::V03State`, a CLI
 on the v0.3 wallet (`cli/`), and a full local run on a v0.3.1 sequencer:
 8 applied, 12 refused as required, 0 failures, re-checked at 26 checks
 ([`evidence/v03/`](evidence/v03/README.md)). What changed and why, and how to run
-it: [`docs/deploy-v03.md`](docs/deploy-v03.md). **The public testnet v0.3
-deployment is still to do**; the v0.2.4 deployment below is history, and its
-transactions died with the testnet reset of 2026-09-30.
+it: [`docs/deploy-v03.md`](docs/deploy-v03.md). **On the public testnet v0.3**
+the program is deployed at `ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7` and its lifecycle ran there on 2026-10-15:
+26 checks, 0 failures (`./scripts/verify-onchain.sh --manifest
+evidence/v03/testnet.tsv --rpc https://testnet.lez.logos.co`). The v0.2.4
+deployment below is history; its transactions died with the reset of 2026-09-30.
 
 ## What this found
 

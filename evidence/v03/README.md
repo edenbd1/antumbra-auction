@@ -6,7 +6,8 @@ public testnet runs), the v0.3.0 wallet, the committed
 `program_loader` at header `B31q8iMw3yXS5Ghu2R53P2N3HGv5o2Vj62uH22nFCMGi`, ImageID
 `dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f`, and
 `scripts/e2e-v03.sh` driving the whole lifecycle through the
-`antumbra-auction` CLI. Nothing here was sent to the public testnet.
+`antumbra-auction` CLI. The same run on the public testnet (2026-10-15, header `ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7`):
+`testnet.tsv`, `testnet-transcript.txt`, `testnet-verify.txt`, 26 checks, 0 failures.
 
 **Result: 8 transactions applied, 12 refused exactly where they must be, 11
 state checks read back from the chain, 0 failures; the verifier re-checks the

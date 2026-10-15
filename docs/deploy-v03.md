@@ -79,9 +79,16 @@ The CLI carries v0.3.1's block format (`cli/vendor/lez-common`, the `common`
 crate with `src/` from `1a003bfb`): v0.3.1 dropped the block header's producer
 key and signature, which a v0.3.0 client cannot decode.
 
-## The public testnet: still to do
+## The public testnet
 
-The program has not been deployed on the public testnet v0.3 yet. When it is:
+Deployed on 2026-10-15 at header `ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7` (ImageID `dc3618e8…`), and driven
+through the whole lifecycle there: 8 applied, 12 refused as required, 0
+failures, 26 checks ([`evidence/v03/testnet.tsv`](../evidence/v03/testnet.tsv)).
+The first run that day failed only at the opening: the sequencer dropped it,
+and the CLI resent it with the time it had first named, outside the two-minute
+window an opening is valid in, so the program refused it, as it must. The CLI
+now names a relative time (`now…`) afresh on every resend; that run's record is
+kept in [`evidence/v03/testnet-run1/`](../evidence/v03/testnet-run1/). To run it again:
 
 ```bash
 export LEE_WALLET_HOME_DIR=<a wallet home holding PAYER> RPC=https://testnet.lez.logos.co
