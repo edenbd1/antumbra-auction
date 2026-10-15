@@ -1,10 +1,18 @@
 # On the public LEZ testnet
 
+> **LEZ v0.3: deployed on the public testnet.** Program `ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7`, ImageID
+> `dc3618e8…`, the reproducible build. On 2026-10-15 the whole lifecycle ran
+> there: 8 applied, 12 refused as required, 11 state checks, 0 failures; the
+> verifier re-checks it at 26 checks, 0 failures
+> ([`evidence/v03/`](evidence/v03/README.md)). Everything below is the v0.2.4
+> deployment, kept as history: its transactions died with the testnet reset of
+> 2026-09-30, and its checker is now `scripts/verify-onchain-v024.sh`.
+
 Everything below is on `https://testnet.lez.logos.co` and re-checkable from a
 clean clone in one command:
 
 ```bash
-./scripts/verify-onchain.sh
+./scripts/verify-onchain-v024.sh
 ```
 
 The script counts its own checks rather than stating a number, because this

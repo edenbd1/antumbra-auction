@@ -1,0 +1,27 @@
+# Runs the committed v0.3 antumbra_auction binary through `lee::V03State`, the
+# state machine the LEZ v0.3 sequencer applies public transactions with: the
+# same plan/apply orchestration, the same timestamp validity windows, and a
+# cycle budget of 10,000,000, the per-transaction execution-gas cap
+# (`fee_core::market::MAX_GAS_EXEC`).
+#
+# Its own workspace: the host side pulls in the RISC0 executor, which the
+# pricing library must not depend on.
+[workspace]
+
+[package]
+name = "antumbra-auction-executor-tests"
+version = "0.3.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+antumbra-auction-core = { path = "../programs/auction/core" }
+antumbra   = { path = "..", package = "antumbra-auction" }
+lee        = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+lee_core   = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77", features = ["host"] }
+borsh = { version = "1.5", features = ["derive"] }
+
+[[bin]]
+name = "measure"
+path = "src/measure.rs"

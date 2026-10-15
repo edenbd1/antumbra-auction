@@ -1,0 +1,28 @@
+antumbra_auction v0.3 against https://testnet.lez.logos.co, from evidence/v03/testnet.tsv
+  ok   program header ADLHPytqfLnz… names ImageID dc3618e80b264590…
+  ok   init-a: applied, in block 15515
+  ok   init-a-again: reverted, in block 15521
+  ok   init-bad-schedule: reverted, in block 15528
+  ok   init-b: applied, in block 15534
+  ok   start-by-non-admin: reverted, in block 15544
+  ok   start-wrong-schedule: reverted, in block 15544
+  ok   start-empty-lot: reverted, in block 15629
+  ok   start: applied, in block 15630
+  ok   start-again: reverted, in block 15636
+  ok   bid-too-small: reverted, in block 15640
+  ok   buy-at-open: applied, in block 15641
+  ok   buy-60s-later: applied, in block 15647
+  ok   bid-backdated: reverted, in block 15653
+  ok   settle-unfinished: reverted, in block 15659
+  ok   buy-out: applied, in block 15660
+  ok   settle-twice: reverted, in block 15661
+  ok   bid-after-settle: reverted, in block 15673
+  ok   start-y: applied, in block 15681
+  ok   buy-target: applied, in block 15686
+  ok   bid-nowhere: reverted, in block 15691
+  ok   final state of Fcu7EcJqRJtx… shard ADLHPytq… is as the run left it
+  ok   final state of AEyYGRGeVKyB… shard ADLHPytq… is as the run left it
+  ok   final state of BNa27Uup1PA5… shard ADLHPytq… is as the run left it
+  ok   final state of AWh1f5t6cv4N… shard ADLHPytq… is as the run left it
+  ok   control: a random hash does not resolve
+26 checks pass, 0 fail (11 state checks recorded during the run)

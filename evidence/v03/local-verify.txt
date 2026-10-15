@@ -1,0 +1,28 @@
+antumbra_auction v0.3 against http://127.0.0.1:3042, from evidence/v03/local-e2e.tsv
+  ok   program header B31q8iMw3yXS… names ImageID dc3618e80b264590…
+  ok   init-a: applied, in block 31
+  ok   init-a-again: reverted, in block 32
+  ok   init-bad-schedule: reverted, in block 33
+  ok   init-b: applied, in block 34
+  ok   start-by-non-admin: reverted, in block 35
+  ok   start-wrong-schedule: reverted, in block 36
+  ok   start-empty-lot: reverted, in block 37
+  ok   start: applied, in block 38
+  ok   start-again: reverted, in block 39
+  ok   bid-too-small: reverted, in block 40
+  ok   buy-at-open: applied, in block 41
+  ok   buy-60s-later: applied, in block 43
+  ok   bid-backdated: reverted, in block 44
+  ok   settle-unfinished: reverted, in block 45
+  ok   buy-out: applied, in block 47
+  ok   settle-twice: reverted, in block 48
+  ok   bid-after-settle: reverted, in block 49
+  ok   start-y: applied, in block 50
+  ok   buy-target: applied, in block 51
+  ok   bid-nowhere: reverted, in block 52
+  ok   final state of 5QGHQwCZnRqR… shard B31q8iMw… is as the run left it
+  ok   final state of 7mHraLn52af6… shard B31q8iMw… is as the run left it
+  ok   final state of 4S4CbLoVufYV… shard B31q8iMw… is as the run left it
+  ok   final state of Fmb1MAp6i42q… shard B31q8iMw… is as the run left it
+  ok   control: a random hash does not resolve
+26 checks pass, 0 fail (11 state checks recorded during the run)

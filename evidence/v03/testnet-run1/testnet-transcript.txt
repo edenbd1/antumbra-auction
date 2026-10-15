@@ -1,0 +1,95 @@
+{"header":"ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7","image_id":"dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f","op":"deploy","segments":["HicF2j6A632hBZNWEUcYcspmxbrakwN6Jeep8RKD9x8t","H8gbNXML5geRZpubXXFKQUAu52zSeEo4ojoznv9yAHPX","8U3PZ5Wf6nssAA1tJF42xHfzGor9Aov1CXS4b6uWwk6B","ESDbUNGTZ1PdAXwVYa4V3W3Rhi4929F7oCRUqi2WmMvZ"]}
+# run against https://testnet.lez.logos.co, 2026-10-15T08:25:30Z
+# program ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7 dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f
+  fund 6E1SPCvwnGGXpSnA9Z1UjmnmYycSj471qzY1sJbaJmvv: Transaction hash is e8d1e0c9072d62bafa1ab48955759a8a405c1f7c3e561b281fc23d026d3759de
+  fund 41iSYfySGTFnApW3qR7KZE9Qb8pxEfDov5FoHkRipW57: Transaction hash is 5557af14a56ce69ae4e5f95dca5619b3f83f50ad3e57fd3762277207069d68cc
+== 1. two configurations, side by side (F7, R3)
+{"block":15332,"label":"init-a","op":"init-config","tx":"8c92d622a7d3ab51837b62800c06f2dc4d67def765311ed5756654aac4bfa0a7","verdict":"applied"}
+  ok  init-a: applied
+  ok  config A names its admin: 9nqn7xA7z54QZPHs8wWn5VzTeXTgbwq8SREr38tVK9aw
+{"block":15337,"label":"init-a-again","op":"init-config","tx":"ea5b48ace120dc571583eb5d962ecc76e1c00cf81e724b87a27930f47de8a2b5","verdict":"reverted"}
+  ok  init-a-again: reverted
+{"block":15345,"label":"init-bad-schedule","op":"init-config","tx":"49d150578e2ac5463d7d34b508ed0a2d8c2ae2ba166cc613014c4f23da3e01b8","verdict":"reverted"}
+  ok  init-bad-schedule: reverted
+{"block":15353,"label":"init-b","op":"init-config","tx":"0533698de71be9618d3e153f64114bad14954d88ea5e17fa25d14343b123f0eb","verdict":"applied"}
+  ok  init-b: applied
+== 2. an auction opened by the config's admin, its schedule checked against the config
+{"block":15355,"label":"start-by-non-admin","op":"start","tx":"19e7e02c703a0d40b05224027873c30cfa7362a9c69d0355853faee0e3df929b","verdict":"reverted"}
+  ok  start-by-non-admin: reverted
+{"block":15360,"label":"start-wrong-schedule","op":"start","tx":"a3a3137a762a356f738c391fa2b7d897a1291a8961b217347420c72ac3892261","verdict":"reverted"}
+  ok  start-wrong-schedule: reverted
+{"block":15366,"label":"start-empty-lot","op":"start","tx":"dbf63e446f8341ddd568f88e645e2ea48dec3a14d508cd3537c778bc672e41b7","verdict":"reverted"}
+  ok  start-empty-lot: reverted
+  ok  nothing opened by the refusals: 
+{"block":15373,"label":"start","op":"start","tx":"6790eee0782169e8ad3b9329e9d38f449be2d86041b291c917d7feb95153005a","verdict":"applied"}
+  ok  start: applied
+  ok  the lot holds what was seized: 10000000000000000000
+{"block":15379,"label":"start-again","op":"start","tx":"fcf00a8a3cc29bd0195534f9722785acefabc084cf356a9c33bf3b7d6e1e448c","verdict":"reverted"}
+  ok  start-again: reverted
+== 3. partial fills at an escalating discount (F2, F3)
+{"block":15385,"label":"bid-too-small","op":"buy","tx":"7892fa2e4afd9bc4e5955d4767dd1a0e578278c081ce333099c40acc7438a9af","verdict":"reverted"}
+  ok  bid-too-small: reverted
+{"block":15391,"label":"buy-at-open","op":"buy","tx":"756d25d24a55c7c1be1907d74d0c7977bd91cba88cffdcad32160d786d27bd18","verdict":"applied"}
+  ok  buy-at-open: applied
+{"block":15398,"label":"buy-60s-later","op":"buy","tx":"f2f4de7070cac69fc78e809f27ccde56727c28217bd6d5a4afc31715eaef9963","verdict":"applied"}
+  ok  buy-60s-later: applied
+  ok  the same bid bought more collateral 60 s later: True
+{"block":15404,"label":"bid-backdated","op":"buy","tx":"6982220c4989c37c642f38bfdcc39ffae643ec9bfdf01e9d4f3d15acdbefaca6","verdict":"reverted"}
+  ok  bid-backdated: reverted
+{"block":15410,"label":"settle-unfinished","op":"settle","tx":"0d177a6e72900097b0e658c6b9f33fdf510d4c19048fffb183a47a35ef6b2f58","verdict":"reverted"}
+  ok  settle-unfinished: reverted
+== 4. the lot runs out: the price re-struck, the shortfall booked, the auction closed (F2, R6)
+{"block":15416,"label":"buy-out","op":"buy","tx":"990c21cc264f3b16c32c05822733bce460f2790bf117c56a659302f122becf88","verdict":"applied"}
+  ok  buy-out: applied
+  ok  collateral left: 0
+  ok  sold + left == seized (R6, from the account): True
+  ok  settled by the last fill: 1
+  ok  a shortfall is booked, not hidden: True
+  ok  raised is the library's figure: 16569594129786746160000
+{"block":15417,"label":"settle-twice","op":"settle","tx":"1de0ce1e43c6d3f239c7df4f083678d4402f439e83b805cb86daf0e1e471122a","verdict":"reverted"}
+  ok  settle-twice: reverted
+{"attempts":["77434120dc431e51842e317869f6030b131e1adac43c96beba40ea4398d0f683","134909ffd691fd1dadd2cd315350053d372aabe7c5dd4492f0a2f584417d74ae"],"block":15409,"label":"bid-after-settle","op":"buy","tx":"77434120dc431e51842e317869f6030b131e1adac43c96beba40ea4398d0f683","verdict":"reverted"}
+  ok  bid-after-settle: reverted
+== 5. under the second config, a target met exactly (F2's other end)
+{"attempts":["f1a75736f1c0671404375c1a57f368d3ae8aa302912a7911c7c98906db7741c8","4abea82526355626defd855f903e1faaf900396a9383b1c2d4c47a9695bfe47b","1fa17cf78e69d1362e51517275430a55d81c18ccff091453749568b33ca19c7f"],"block":15449,"label":"start-y","op":"start","tx":"4abea82526355626defd855f903e1faaf900396a9383b1c2d4c47a9695bfe47b","verdict":"reverted"}
+  FAIL start-y: reverted, expected applied
+Error: no auction at id 746573746e6574312d6c6f742d79000000000000000000000000000000000000
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+{"verdict":"error","error":"    cannot parse integer from empty string"}
+  FAIL buy-target: error, expected applied
+Error: no auction at id 746573746e6574312d6c6f742d79000000000000000000000000000000000000
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+  FAIL raised exactly the target, the bid clamped: got , want 2000000000000000000000
+Error: no auction at id 746573746e6574312d6c6f742d79000000000000000000000000000000000000
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+  FAIL settled: got , want 1
+== 6. a bid on an auction that does not exist
+{"attempts":["35badb567327d92e3ad41ac0c243ea197a2d45162859681b09d0ca5d32039233","b20dd52c9dc2659ba25df1e020204a71bb4dc350813171510d754333eb19bc19"],"block":15484,"label":"bid-nowhere","op":"buy","tx":"b20dd52c9dc2659ba25df1e020204a71bb4dc350813171510d754333eb19bc19","verdict":"reverted"}
+  ok  bid-nowhere: reverted
+  moved init-a-again: recorded in block 15337, in block 15345 at the end of the run
+  moved init-b: recorded in block 15353, in block 15355 at the end of the run
+summary: 6 applied, 12 refused as expected, 9 state checks ok, failures=1

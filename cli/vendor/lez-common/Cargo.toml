@@ -1,0 +1,33 @@
+# LEZ's `common` crate at v0.3.0 (db66590ab), with its `src/` taken from v0.3.1
+# (1a003bfbf). The two differ only in the block header: v0.3.1, which the
+# public testnet runs, dropped the producer key and signature, so a v0.3.0
+# wallet cannot decode a testnet block, and a private account's sync fails.
+# Every other crate stays at v0.3.0; cli/Cargo.toml patches this one in.
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+lee = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+lee_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77", features = ["host"] }
+clock_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+fee_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+bridge_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+bridge_lock_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+cross_zone_inbox_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+ping_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+programs = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77", default-features = false, features = ["artifacts"] }
+system_accounts = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+
+anyhow = "1.0.98"
+thiserror = "2.0"
+serde = { version = "1.0.60", default-features = false, features = ["derive"] }
+serde_with = "3.16.1"
+base64 = "0.22.1"
+sha2 = "0.10.8"
+log = "0.4.28"
+hex = "0.4.3"
+borsh = "1.5.7"
+logos-blockchain-common-http-client = { git = "https://github.com/logos-blockchain/logos-blockchain.git", rev = "c4c86be18c58b5b09c3650e93871c8cfb624885b" }

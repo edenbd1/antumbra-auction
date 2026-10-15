@@ -1,0 +1,6 @@
+| op | cycles | share of the 10M gas cap |
+|---|---:|---:|
+| init_config | 24379 | 0.24% |
+| start_auction | 41796 | 0.42% |
+| buy_collateral (partial fill) | 54243 | 0.54% |
+| buy_collateral (re-struck, lot exhausted) | 55666 | 0.56% |

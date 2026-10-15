@@ -1,0 +1,64 @@
+# run against https://testnet.lez.logos.co, 2026-10-15T09:15:12Z
+# program ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7 dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f
+  fund 6LJScXpEf6Q2xNjAT2oqBncgdfHZ1agFFkasgXNC3nFV: Transaction hash is 803948881ed0136dbd608bcaa7369eb1c63f3c7bb0eec48d3eef7e30f778ee51
+  fund 5LwEVr28hLrZxRURnfK399akHaRcSmowVms1hZqxmGRS: Transaction hash is 41a782ef0abb6f86919535cebac1f4bc80e525ab89192c09bfdc333ae0fb40cc
+== 1. two configurations, side by side (F7, R3)
+{"block":15515,"label":"init-a","op":"init-config","tx":"30d33944d412b9bc518b3f57c5ae95f2d903cbd731c013cdc13811018c9f8e64","verdict":"applied"}
+  ok  init-a: applied
+  ok  config A names its admin: 9nqn7xA7z54QZPHs8wWn5VzTeXTgbwq8SREr38tVK9aw
+{"block":15521,"label":"init-a-again","op":"init-config","tx":"c2cb5546fd9814278a86ac6d99c94eb6d8b0f5f43731251f6fb9cf632552b260","verdict":"reverted"}
+  ok  init-a-again: reverted
+{"block":15528,"label":"init-bad-schedule","op":"init-config","tx":"4280e56ce0b859432e191415fdb19e7a964fc408fe8d9524392903deb9b4930e","verdict":"reverted"}
+  ok  init-bad-schedule: reverted
+{"block":15529,"label":"init-b","op":"init-config","tx":"ce4402a37d3f694a10b4053a978cc4110334ebc796b28d52402dc27870c85b7a","verdict":"applied"}
+  ok  init-b: applied
+== 2. an auction opened by the config's admin, its schedule checked against the config
+{"block":15531,"label":"start-by-non-admin","op":"start","tx":"516ad3c194e15b34efd4a56b14e8865a53cb666de4ecdc8caeff18cf634e3feb","verdict":"reverted"}
+  ok  start-by-non-admin: reverted
+{"attempts":["f17c7d7d4c6ee0e9ca7519930a22598b6119b464c81ea46aa51fd59bc20753e1","3e86d685c6eb21899c47fcb1427eace2cb4a729087fe24ace42dd88e9ab31b19","e1a3b0a289c9bf0237f82011bc497a0c221ae333622460ec1d24e62ac2baf2b5"],"block":15544,"label":"start-wrong-schedule","op":"start","tx":"f17c7d7d4c6ee0e9ca7519930a22598b6119b464c81ea46aa51fd59bc20753e1","verdict":"reverted"}
+  ok  start-wrong-schedule: reverted
+{"attempts":["f376e2cff16c00a0081a9fbfa14522f20f153de5f6fb210e86cdbeea3cb2623c","62475cf14945272db523e502b95cca3a1b07ac8d0bfa46e7c6fe21cb1b0f1f3b"],"block":15629,"label":"start-empty-lot","op":"start","tx":"62475cf14945272db523e502b95cca3a1b07ac8d0bfa46e7c6fe21cb1b0f1f3b","verdict":"reverted"}
+  ok  start-empty-lot: reverted
+  ok  nothing opened by the refusals: 
+{"block":15630,"label":"start","op":"start","tx":"82283f8e5c38b904adf4e77c5fbd32c897a4fed3c457248c5747867af32192d6","verdict":"applied"}
+  ok  start: applied
+  ok  the lot holds what was seized: 10000000000000000000
+{"block":15636,"label":"start-again","op":"start","tx":"94fb9097405af82ec6c5ab745742c80ed1501f05625499a66426ceb4728fd9b3","verdict":"reverted"}
+  ok  start-again: reverted
+== 3. partial fills at an escalating discount (F2, F3)
+{"block":15640,"label":"bid-too-small","op":"buy","tx":"3908c322ccf294dae33557184b95154cc7824140391896da96bfdaf09eab90f2","verdict":"reverted"}
+  ok  bid-too-small: reverted
+{"block":15641,"label":"buy-at-open","op":"buy","tx":"f29c4a7ec1d7983e144640bdc2bcc396ac116f5f03bf3b74e021fcce5a18c774","verdict":"applied"}
+  ok  buy-at-open: applied
+{"block":15647,"label":"buy-60s-later","op":"buy","tx":"25a76e958719643419f559924abe9492a2f60d96bcd89bc4a024b34be6433e2e","verdict":"applied"}
+  ok  buy-60s-later: applied
+  ok  the same bid bought more collateral 60 s later: True
+{"block":15653,"label":"bid-backdated","op":"buy","tx":"4f0655380653de02d99eecea3450ae47f068ec4058f4e7d70f0f46ecc79f6bad","verdict":"reverted"}
+  ok  bid-backdated: reverted
+{"block":15659,"label":"settle-unfinished","op":"settle","tx":"20988dcf4493fbbd05244c76e9ff679aa69544bf0aa652ca9358682e5301cb59","verdict":"reverted"}
+  ok  settle-unfinished: reverted
+== 4. the lot runs out: the price re-struck, the shortfall booked, the auction closed (F2, R6)
+{"block":15660,"label":"buy-out","op":"buy","tx":"6c2e4a12433219eb58812c1de98f301de7849f4f6528a0984a34e6b88a6c85ab","verdict":"applied"}
+  ok  buy-out: applied
+  ok  collateral left: 0
+  ok  sold + left == seized (R6, from the account): True
+  ok  settled by the last fill: 1
+  ok  a shortfall is booked, not hidden: True
+  ok  raised is the library's figure: 16569594129786746160000
+{"block":15661,"label":"settle-twice","op":"settle","tx":"73b1ef888a40bf18e44ca3cd05a97bb57329aba86faa6a9f5273b276536bf022","verdict":"reverted"}
+  ok  settle-twice: reverted
+{"block":15673,"label":"bid-after-settle","op":"buy","tx":"ce4467466ba1e2763cd53ab1116dd7f81466301dcb48f20f2298409bb33a3bf0","verdict":"reverted"}
+  ok  bid-after-settle: reverted
+== 5. under the second config, a target met exactly (F2's other end)
+{"block":15681,"label":"start-y","op":"start","tx":"7a6a67ae45d8ce9d844c61cffe3a965a117f212bd90170b598c5fe9394b52029","verdict":"applied"}
+  ok  start-y: applied
+{"block":15686,"label":"buy-target","op":"buy","tx":"defa399f89e42f1d0ffd0f61a74cca7bd6c775ae4719635b26368e5e0b5927e6","verdict":"applied"}
+  ok  buy-target: applied
+  ok  raised exactly the target, the bid clamped: 2000000000000000000000
+  ok  settled: 1
+== 6. a bid on an auction that does not exist
+{"block":15691,"label":"bid-nowhere","op":"buy","tx":"05e0db5c8576ae2e4d71aac7b8f96965516d747bbe9031b1ed8e9023c3fd9b57","verdict":"reverted"}
+  ok  bid-nowhere: reverted
+  moved init-b: recorded in block 15529, in block 15534 at the end of the run
+  moved start-by-non-admin: recorded in block 15531, in block 15544 at the end of the run
+summary: 8 applied, 12 refused as expected, 11 state checks ok, failures=0
