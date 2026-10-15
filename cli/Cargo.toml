@@ -1,0 +1,40 @@
+# `antumbra-auction`: the client for antumbra_auction on LEZ v0.3, built on the
+# v0.3.0 `wallet` crate. It signs with the wallet's keys and names an LGO fee
+# payer for every transaction. Its read-only commands ask the sequencer
+# directly and need no wallet.
+[workspace]
+
+[package]
+name = "antumbra-auction-cli"
+version = "0.3.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[[bin]]
+name = "antumbra-auction"
+path = "src/main.rs"
+
+[dependencies]
+antumbra-auction-core = { path = "../programs/auction/core" }
+antumbra   = { path = "..", package = "antumbra-auction" }
+wallet     = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+lee        = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+lee_core   = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77", features = ["host"] }
+common     = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+clock_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+program_loader_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77" }
+sequencer_service_rpc = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", rev = "db66590ab821a4e142c211017a3866d007f6fa77", features = ["client"] }
+risc0-binfmt = "3.0"
+tokio  = { version = "1", features = ["macros", "rt-multi-thread"] }
+clap   = { version = "4.5", features = ["derive", "env"] }
+anyhow = "1"
+hex    = "0.4"
+borsh  = { version = "1.5", features = ["derive"] }
+serde_json = "1"
+
+# The public testnet runs v0.3.1, whose block header dropped the producer key
+# and signature: a v0.3.0 `common` cannot decode its blocks. See
+# vendor/lez-common/Cargo.toml.
+[patch."https://github.com/logos-blockchain/logos-execution-zone.git"]
+common = { path = "vendor/lez-common" }

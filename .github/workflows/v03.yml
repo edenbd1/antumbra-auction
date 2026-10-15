@@ -1,0 +1,115 @@
+name: LEZ v0.3
+on: [push, pull_request]
+jobs:
+  core:
+    name: Program logic on v0.3 (host tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --release --manifest-path programs/auction/Cargo.toml -p antumbra-auction-core
+
+  executor:
+    name: The committed v0.3 binary through lee::V03State
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: RISC0
+        run: |
+          curl -L https://risczero.com/install | bash
+          echo "$HOME/.risc0/bin" >> "$GITHUB_PATH"
+      # The executor runs the guest in r0vm. rzup asks api.github.com for
+      # release metadata; anonymous calls from a shared runner hit the rate
+      # limit, so authenticate and retry.
+      - name: r0vm
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          for i in 1 2 3; do rzup install r0vm 3.0.5 && exit 0; sleep $((i * 20)); done
+          exit 1
+      - run: cargo test --release --manifest-path executor-tests/Cargo.toml
+      - name: The cycle table is what the committed binary measures
+        run: |
+          cargo run --release --manifest-path executor-tests/Cargo.toml --bin measure > /tmp/cycles.txt
+          diff -u docs/cycles-v03.txt /tmp/cycles.txt
+
+  reproduce:
+    name: A clean rebuild is the committed v0.3 binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: RISC0
+        run: |
+          curl -L https://risczero.com/install | bash
+          echo "$HOME/.risc0/bin" >> "$GITHUB_PATH"
+      # The build runs in the pinned Docker image; cargo-risczero still refuses
+      # to start without a host guest toolchain installed.
+      - name: cargo-risczero 3.0.5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          for i in 1 2 3; do
+            rzup install cargo-risczero 3.0.5 && rzup install rust && exit 0
+            sleep $((i * 20))
+          done
+          exit 1
+      - run: |
+          cp artifacts/programs/v0.3/antumbra_auction.bin /tmp/committed.bin
+          scripts/build-guest.sh
+          cmp /tmp/committed.bin artifacts/programs/v0.3/antumbra_auction.bin
+
+  e2e:
+    name: Full lifecycle on a standalone v0.3 sequencer
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt-get update && sudo apt-get install -y libpcsclite-dev pkg-config libclang-dev
+      # The sequencer is v0.3.1, as on the public testnet; the wallet stays v0.3.0,
+      # whose config and storage format the CLI's wallet crate reads.
+      - name: LEZ v0.3.1 sequencer, v0.3.0 wallet
+        run: |
+          git clone https://github.com/logos-blockchain/logos-execution-zone /tmp/lez
+          cd /tmp/lez && git checkout db66590ab821a4e142c211017a3866d007f6fa77
+          cargo build --release -p wallet
+          git checkout 1a003bfbfb89fcf987f62975cd08a401169e1b8c
+          cargo build --release --features standalone -p sequencer_service
+          echo /tmp/lez/target/release >> "$GITHUB_PATH"
+      - run: cargo build --release --manifest-path cli/Cargo.toml
+      # The sequencer executes its genesis programs in r0vm.
+      - name: RISC0
+        run: |
+          curl -L https://risczero.com/install | bash
+          echo "$HOME/.risc0/bin" >> "$GITHUB_PATH"
+      - name: r0vm
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          for i in 1 2 3; do rzup install r0vm 3.0.5 && exit 0; sleep $((i * 20)); done
+          exit 1
+      - name: Start the sequencer and a wallet
+        run: |
+          mkdir -p /tmp/seq && cp /tmp/lez/lez/sequencer/service/configs/debug/sequencer_config.json /tmp/seq/
+          (cd /tmp/seq && sequencer_service sequencer_config.json --listen-address 127.0.0.1 > seq.log 2>&1 &)
+          for i in $(seq 60); do
+            curl -s -m 5 http://127.0.0.1:3040 -H 'Content-Type: application/json' \
+              -d '{"jsonrpc":"2.0","id":1,"method":"getLastBlockId","params":[]}' | grep -q '"result"' && break
+            sleep 5
+          done
+          curl -s -m 5 http://127.0.0.1:3040 -H 'Content-Type: application/json' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"getLastBlockId","params":[]}' | grep -q '"result"' \
+            || { echo "the sequencer did not answer"; tail -50 /tmp/seq/seq.log; exit 1; }
+          export LEE_WALLET_HOME_DIR=/tmp/wallet
+          wallet check-health || true
+          sed -i -e 's|https://testnet.lez.logos.co/|http://127.0.0.1:3040/|' -e 's/"gas_limit": 2000000/"gas_limit": 10000000/' /tmp/wallet/wallet_config.json
+          wallet account import public --private-key 10a26a9aec7d34b82364eeae45c5294dbb0a764b000b94eeb9b58511dc487c4d
+      - name: e2e and verify
+        env:
+          LEE_WALLET_HOME_DIR: /tmp/wallet
+          SUPPRESS_VERBOSE_PRINTS: "1"
+        run: |
+          DEPLOY=1 PAYER=6iArKUXxhUJqS7kCaPNhwMWt3ro71PDyBj7jwAyE2VQV OUT=/tmp/ci-e2e.tsv TAG=ci ./scripts/e2e-v03.sh
+          ./scripts/verify-onchain.sh --manifest /tmp/ci-e2e.tsv --rpc http://127.0.0.1:3040

@@ -1,0 +1,38 @@
+# run against http://127.0.0.1:3042, 2026-10-15T07:40:23Z
+# program B31q8iMw3yXS5Ghu2R53P2N3HGv5o2Vj62uH22nFCMGi dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f
+# payer 6iArKUXxhUJqS7kCaPNhwMWt3ro71PDyBj7jwAyE2VQV admin 6iArKUXxhUJqS7kCaPNhwMWt3ro71PDyBj7jwAyE2VQV bidder 3VzoY9tfkGMGAuhhqPn8yxNxHqMCZzEF2SNJMi2K7Uir other HtvcEmBtKQuGtkLYeog2Z8WPLhUe7LRPBYs987pdbTjW
+init-a	applied	applied	31	eceb1690ea9f3a86d2c7b0c1695fe4fbdd6d5f98e00baa041f54f56a7d6fb4c0
+# check ok: config A names its admin = 6iArKUXxhUJqS7kCaPNhwMWt3ro71PDyBj7jwAyE2VQV
+init-a-again	refused	reverted	32	dde05d21bbc1e0cbf35df792eeb80c1c5d44ce3ec8a84f036fbaad0d797b260c
+init-bad-schedule	refused	reverted	33	d35c90aab7e401c6b803410cd4c72bf30c2ec45ba66297bc9bb810aad0297a89
+init-b	applied	applied	34	0ea737ce68ef9241f6f9ab43225b3d8ee710d7077c4be5de5b3c042e55281f3c
+start-by-non-admin	refused	reverted	35	95e59b2ddb440abdd33ca95219e07a795dd7165756c930fcbfc36ab078b23801
+start-wrong-schedule	refused	reverted	36	d6acb663cd7964070dcaa85c6f965434224859aff6c860253a040a444d16ff5d
+start-empty-lot	refused	reverted	37	ce50c3e0266fcacfc30b8b7f5450f2d0662c1604e0e18557df3b6922beb8c9b9
+# check ok: nothing opened by the refusals = 
+start	applied	applied	38	18d56f5f5cb4170832457e134a18ff096ae71d649d7d9b1e95a0309a653e405d
+# check ok: the lot holds what was seized = 10000000000000000000
+start-again	refused	reverted	39	5782b47541241719a8f9759d0baf61308e59dd5727701064f2f3e725a93cb749
+bid-too-small	refused	reverted	40	466ce760d082f87c87ce2d9760bdde708709d822fc60aa43b0154eb135c2b08c
+buy-at-open	applied	applied	41	ef7e2567adffbdd52e379b9bf93dfb2ace4c8814467272ef055fa901f69fa2d2
+buy-60s-later	applied	applied	43	2a86491fa9286ba0648d04d56fe7bb5369b950f60f40b9619454af07051d8f5a
+# check ok: the same bid bought more collateral 60 s later = True
+bid-backdated	refused	reverted	44	428118d6593b1dfd60762f4cea8145e2334cd1122793ff5cb772a5bcd7559c07
+settle-unfinished	refused	reverted	45	e75605152de4863ff2227121ce7ffaf54d1dbece9c0fc0d17c3a7a6f7d7295c0
+buy-out	applied	applied	47	c8b986497f783d5aad0720ae07c220c579698a717e8a367f600b0b0646bb4bd2
+# check ok: collateral left = 0
+# check ok: sold + left == seized (R6, from the account) = True
+# check ok: settled by the last fill = 1
+# check ok: a shortfall is booked, not hidden = True
+# check ok: raised is the library's figure = 16569594129786746160000
+settle-twice	refused	reverted	48	ea07a469fa369d0f1c7327d66b3a0b7c7eac4d527df5569acada6592e37f4d8e
+bid-after-settle	refused	reverted	49	8d4a52a8b594c32e7a073cd1527f71d796ce41c4776089f3dec025b14e4f5de4
+start-y	applied	applied	50	46c92b1f65228c14e385eb7dbf9f7216a6b22ee8e048902c1593c074c39924f4
+buy-target	applied	applied	51	a3555c44b742459ad1e6dae52ba4b8e4e584a494964b7033e20e2303ec2338f2
+# check ok: raised exactly the target, the bid clamped = 2000000000000000000000
+# check ok: settled = 1
+bid-nowhere	refused	reverted	52	42ddfadd1ba28be63c9a379b064c0714e9e3f1f3dd99c3b65c49c0fde4d79e50
+# final 5QGHQwCZnRqR6tCkbV6LyvDgFi5TTJbHzXj5NKRFhrkf B31q8iMw3yXS5Ghu2R53P2N3HGv5o2Vj62uH22nFCMGi daee03dacf96a387f6ea3914387f9c81f005805804cea9a0bc71e79f751eec1f
+# final 7mHraLn52af6tQ8G3RJTSKPq482QXhHDp8ohz85iepcT B31q8iMw3yXS5Ghu2R53P2N3HGv5o2Vj62uH22nFCMGi 850193ae33109d31a8276496cd4b76a59bd8914dcb9b98d8044f54b3ea734f59
+# final 4S4CbLoVufYVgCuKLjGZtMuEGxvEAT7HYM3ri9Rgkrjy B31q8iMw3yXS5Ghu2R53P2N3HGv5o2Vj62uH22nFCMGi 9447b4930667bbe6758dad215efc5405c5e2c03ce8714ff948748c4a3d374f88
+# final Fmb1MAp6i42qC1xMAMSu7KVSk7HzCyUS8x5ojEgPxzKP B31q8iMw3yXS5Ghu2R53P2N3HGv5o2Vj62uH22nFCMGi 6be5c961f2b50503fa5d67f68e168aaec9cec39fa94cb87fcc4ae538275d077c

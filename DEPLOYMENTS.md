@@ -1,10 +1,16 @@
 # On the public LEZ testnet
 
+> **LEZ v0.3.** Everything below is the v0.2.4 deployment, kept as history: its
+> transactions died with the testnet reset of 2026-09-30, and its checker is now
+> `scripts/verify-onchain-v024.sh`. The program is ported to v0.3 and runs end to
+> end on a local v0.3.1 sequencer ([`evidence/v03/`](evidence/v03/README.md));
+> its public testnet v0.3 deployment is still to do ([`docs/deploy-v03.md`](docs/deploy-v03.md)).
+
 Everything below is on `https://testnet.lez.logos.co` and re-checkable from a
 clean clone in one command:
 
 ```bash
-./scripts/verify-onchain.sh
+./scripts/verify-onchain-v024.sh
 ```
 
 The script counts its own checks rather than stating a number, because this

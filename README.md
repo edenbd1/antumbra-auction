@@ -22,6 +22,19 @@ and diffs them, so the file cannot be edited to match a broken implementation.
 executor and CI fails if a published figure has drifted. One whole bid — quote
 then settle — is **27,753** cycles, 0.083 % of the session budget.
 
+## LEZ v0.3
+
+The auction program now runs on LEZ v0.3: rewritten on `lee_core`'s plan/apply
+model in [`programs/auction`](programs/auction), its binary a reproducible Docker
+build (`artifacts/programs/v0.3/antumbra_auction.bin`, ImageID `dc3618e8…`), 15
+host tests and 16 tests of the committed binary through `lee::V03State`, a CLI
+on the v0.3 wallet (`cli/`), and a full local run on a v0.3.1 sequencer:
+8 applied, 12 refused as required, 0 failures, re-checked at 26 checks
+([`evidence/v03/`](evidence/v03/README.md)). What changed and why, and how to run
+it: [`docs/deploy-v03.md`](docs/deploy-v03.md). **The public testnet v0.3
+deployment is still to do**; the v0.2.4 deployment below is history, and its
+transactions died with the testnet reset of 2026-09-30.
+
 ## What this found
 
 [RFP-014](https://github.com/logos-co/rfp/blob/master/RFPs/RFP-014-liquidation-auction-engine.md)
@@ -180,7 +193,7 @@ either way.
 
 ```bash
 WALLET=/path/to/lez/wallet ./scripts/deploy.sh   # deploy
-./scripts/verify-onchain.sh                      # re-check everything, no setup
+./scripts/verify-onchain-v024.sh                 # re-check the v0.2.4 run (history)
 ```
 
 The script counts its own checks rather than stating a number here, because
