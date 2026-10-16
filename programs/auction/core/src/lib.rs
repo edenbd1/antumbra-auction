@@ -6,12 +6,12 @@
 //!
 //! WHAT THIS PROGRAM IS
 //!
-//! The increasing-discount auction house of RFP-014: the state machine and the
-//! arithmetic over collateral it has been told was seized, at a price it was
-//! handed. As on v0.2.4 it is not the liquidation trigger (that needs a host
-//! CDP) and it moves no tokens (that needs a pinned system coin); the quote,
-//! both clamps, the re-strike and the rounding are the `antumbra` library's,
-//! unchanged.
+//! The increasing-discount auction house of RFP-014, and since instruction 4
+//! ([`engine`]) what feeds it: collateral types with a time-weighted feed that
+//! pauses only a stale type (R2, R4, R5), positions standing in for a host CDP's
+//! vaults, a permissionless `liquidate` that opens the auction (F1), and a debt
+//! auction for a shortfall (F4). It moves no tokens (that needs a pinned system
+//! coin); the quote, clamps, re-strike and rounding are the `antumbra` library's.
 //!
 //! THE SPLIT v0.3 FORCES
 //!
@@ -52,7 +52,9 @@ use lee_core::{
 };
 use risc0_zkvm::sha::{Impl, Sha256 as _};
 
+pub mod engine;
 pub mod errors;
+use engine::*;
 use errors::*;
 
 /// How far past the time it names an auction's opening may still land.
@@ -102,6 +104,72 @@ pub enum Instruction {
     ///
     /// Accounts: `[auction, caller (signer handle)]`.
     SettleAuction { auction_id: [u8; 32], now: u64 },
+
+    // -------- 4 onwards: liquidation, the feed and the debt auction (engine.rs)
+    /// Open a collateral type under a config, restating the config's schedule
+    /// (checked, as at `StartAuction`). Its feed writer is the config's admin.
+    ///
+    /// Accounts: `[ctype, config, admin (signer handle)]`.
+    InitCollateralType { ctype_id: [u8; 32], terms: CtypeTerms },
+    /// Post a price to a type's feed. Valid only while the block timestamp is
+    /// in `[now, now + START_WINDOW_MS)`, so a price cannot be dated ahead of
+    /// the chain or far behind it.
+    ///
+    /// Accounts: `[ctype, admin (signer handle)]`.
+    UpdatePrice { ctype_id: [u8; 32], price: u128, now: u64 },
+    /// The reference host's vault: record collateral and debt in a type. Not
+    /// gated on the feed (R5).
+    ///
+    /// Accounts: `[position, ctype, owner (signer handle)]`.
+    OpenPosition {
+        position_id: [u8; 32],
+        ctype_id: [u8; 32],
+        collateral: u128,
+        debt: u128,
+    },
+    /// Liquidate an unsafe position, signed by anyone (F1). Restates the type's
+    /// terms, its time-weighted price at `now` and the position; opens the
+    /// auction at `liquidation_auction_id(position_id)`. Valid only while the
+    /// block timestamp is in `[now, now + START_WINDOW_MS)`.
+    ///
+    /// Accounts: `[position, ctype, auction, liquidator (signer handle)]`.
+    Liquidate {
+        position_id: [u8; 32],
+        ctype_id: [u8; 32],
+        collateral: u128,
+        debt: u128,
+        price: u128,
+        now: u64,
+        terms: CtypeTerms,
+    },
+    /// Set a config's debt auction terms, once, by its admin.
+    ///
+    /// Accounts: `[debt_config, config, admin (signer handle)]`.
+    InitDebtConfig { config_id: [u8; 32], terms: DebtTerms },
+    /// Book a closed auction's shortfall into a debt auction (F4), signed by
+    /// anyone. Valid only while the block timestamp is in
+    /// `[now, now + START_WINDOW_MS)`.
+    ///
+    /// Accounts: `[auction, debt_config, debt_auction, caller (signer handle)]`.
+    BookShortfall {
+        auction_id: [u8; 32],
+        config_id: [u8; 32],
+        shortfall: u128,
+        now: u64,
+        terms: DebtTerms,
+    },
+    /// Offer to take a smaller lot of protocol token for covering the
+    /// shortfall. Valid only while the block timestamp is in
+    /// `[now, now + START_WINDOW_MS)`, so a bid cannot be back-dated under an
+    /// expiry that has passed.
+    ///
+    /// Accounts: `[debt_auction, bidder (signer handle)]`.
+    DebtBid { auction_id: [u8; 32], lot: u128, now: u64 },
+    /// Close a debt auction whose standing bid has expired. Valid only once the
+    /// block timestamp reaches `now`.
+    ///
+    /// Accounts: `[debt_auction, caller (signer handle)]`.
+    SettleDebtAuction { auction_id: [u8; 32], now: u64 },
 }
 
 /// One deployer's configuration, this program's shard of the config PDA.
@@ -158,6 +226,28 @@ pub enum Effect {
     CreateAuction(AuctionState),
     Buy { bid: u128, now: u64 },
     Settle { now: u64 },
+    CreateCtype(CollateralType),
+    PushPrice { admin: AccountId, price: u128, now: u64 },
+    /// Applied to a ctype shard, never written: it exists.
+    CheckCtype,
+    CreatePosition(PositionState),
+    CheckFeed { terms: CtypeTerms, price: u128, now: u64 },
+    Seize {
+        ctype_id: [u8; 32],
+        collateral: u128,
+        debt: u128,
+        liquidator: AccountId,
+        tip: u128,
+        now: u64,
+    },
+    /// Applied to a config shard, never written: the signer is its admin.
+    CheckAdmin { admin: AccountId },
+    CreateDebtConfig(DebtConfig),
+    CheckShortfall { config_id: [u8; 32], shortfall: u128 },
+    CheckDebtConfig(DebtTerms),
+    CreateDebtAuction(DebtAuction),
+    DebtBid { bidder: AccountId, lot: u128, now: u64 },
+    DebtSettle { now: u64 },
 }
 
 // ---------------------------------------------------------------- addresses
@@ -260,8 +350,69 @@ pub struct AuctionSettled {
     pub at: u64,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct CollateralTypeInitialized {
+    pub ctype_id: [u8; 32],
+    pub config_id: [u8; 32],
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct PriceUpdated {
+    pub ctype_id: [u8; 32],
+    pub price: u128,
+    pub at: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct PositionOpened {
+    pub position_id: [u8; 32],
+    pub ctype_id: [u8; 32],
+    pub owner: AccountId,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct Liquidated {
+    pub position_id: [u8; 32],
+    pub ctype_id: [u8; 32],
+    pub auction_id: [u8; 32],
+    pub liquidator: AccountId,
+    pub tip: u128,
+    pub lot: u128,
+    pub to_raise: u128,
+    pub price: u128,
+    pub at: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct ShortfallBooked {
+    pub auction_id: [u8; 32],
+    pub shortfall: u128,
+    pub lot: u128,
+    pub at: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+pub struct DebtBidPlaced {
+    pub auction_id: [u8; 32],
+    pub bidder: AccountId,
+    pub lot: u128,
+    pub at: u64,
+}
+
 /// Every event name, in the order the IDL lists them.
-pub const EVENT_NAMES: [&str; 4] = ["ConfigInitialized", "AuctionStarted", "BidPlaced", "AuctionSettled"];
+pub const EVENT_NAMES: [&str; 11] = [
+    "ConfigInitialized",
+    "AuctionStarted",
+    "BidPlaced",
+    "AuctionSettled",
+    "CollateralTypeInitialized",
+    "PriceUpdated",
+    "PositionOpened",
+    "Liquidated",
+    "ShortfallBooked",
+    "DebtBidPlaced",
+    "DebtAuctionSettled",
+];
 
 fn event<T: BorshSerialize>(name: &str, body: &T) -> ProgramEvent {
     ProgramEvent {
@@ -450,8 +601,237 @@ pub fn plan(input: &PlanInput, ix: Instruction) -> Plan {
             plan.effect(&auction, &Effect::Settle { now });
             plan.event(event("AuctionSettled", &AuctionSettled { auction_id, at: now }));
         }
+        Instruction::InitCollateralType { ctype_id, terms } => {
+            let [ctype, config, admin] = rows::<3>(input);
+            expect_row(&ctype, ctype_account(&me, &ctype_id), &me, "the ctype row is not this program's shard of the ctype PDA");
+            expect_row(&config, config_account(&me, &terms.config_id), &me, "no config at this id");
+            expect_signer_handle(&admin, &me);
+            validate_ctype_terms(&terms);
+            plan.effect(
+                &config,
+                &Effect::CheckConfig {
+                    admin: admin.account_id,
+                    min_multiplier: terms.min_multiplier,
+                    max_multiplier: terms.max_multiplier,
+                    window: terms.window,
+                },
+            );
+            let config_id = terms.config_id;
+            plan.effect(
+                &ctype,
+                &Effect::CreateCtype(CollateralType {
+                    admin: admin.account_id,
+                    terms,
+                    observations: vec![],
+                }),
+            );
+            plan.event(event("CollateralTypeInitialized", &CollateralTypeInitialized { ctype_id, config_id }));
+        }
+        Instruction::UpdatePrice { ctype_id, price, now } => {
+            let [ctype, admin] = rows::<2>(input);
+            expect_row(&ctype, ctype_account(&me, &ctype_id), &me, "no collateral type at this id");
+            expect_signer_handle(&admin, &me);
+            plan.timestamp_window(bounded(now));
+            plan.effect(&ctype, &Effect::PushPrice { admin: admin.account_id, price, now });
+            plan.event(event("PriceUpdated", &PriceUpdated { ctype_id, price, at: now }));
+        }
+        Instruction::OpenPosition {
+            position_id,
+            ctype_id,
+            collateral,
+            debt,
+        } => {
+            let [position, ctype, owner] = rows::<3>(input);
+            expect_row(&position, position_account(&me, &position_id), &me, "the position row is not this program's shard of the position PDA");
+            expect_row(&ctype, ctype_account(&me, &ctype_id), &me, "no collateral type at this id");
+            expect_signer_handle(&owner, &me);
+            refuse_unless(collateral > 0, E_BAD_STATE, "a position needs collateral");
+            plan.effect(&ctype, &Effect::CheckCtype);
+            plan.effect(
+                &position,
+                &Effect::CreatePosition(PositionState {
+                    ctype_id,
+                    owner: owner.account_id,
+                    collateral,
+                    debt,
+                    liquidated: 0,
+                    liquidator: owner.account_id,
+                    tip: 0,
+                    liquidated_at: 0,
+                }),
+            );
+            plan.event(event(
+                "PositionOpened",
+                &PositionOpened {
+                    position_id,
+                    ctype_id,
+                    owner: owner.account_id,
+                },
+            ));
+        }
+        Instruction::Liquidate {
+            position_id,
+            ctype_id,
+            collateral,
+            debt,
+            price,
+            now,
+            terms,
+        } => {
+            let [position, ctype, auction, liquidator] = rows::<4>(input);
+            let auction_id = liquidation_auction_id(&position_id);
+            expect_row(&position, position_account(&me, &position_id), &me, "no position at this id");
+            expect_row(&ctype, ctype_account(&me, &ctype_id), &me, "no collateral type at this id");
+            expect_row(&auction, auction_account(&me, &auction_id), &me, "the auction row is not this position's liquidation auction");
+            // F1: any signer. The row must carry a signature, so the liquidator
+            // is named and booked, but nothing compares it to a list.
+            expect_signer_handle(&liquidator, &me);
+            refuse_unless(price > 0, E_BAD_STATE, "a price of zero");
+            refuse_unless(
+                is_unsafe(collateral, debt, terms.liquidation_ratio, price),
+                E_POSITION_SAFE,
+                "the position is safe at this collateral type's time-weighted price",
+            );
+            let (tip, lot, to_raise) = liquidation_split(collateral, debt, &terms);
+            refuse_unless(lot > 0 && to_raise > 0, E_BAD_STATE, "nothing to auction");
+            validate_schedule(terms.min_multiplier, terms.max_multiplier, terms.window);
+            plan.timestamp_window(bounded(now));
+            plan.effect(&ctype, &Effect::CheckFeed { terms: terms.clone(), price, now });
+            plan.effect(
+                &position,
+                &Effect::Seize {
+                    ctype_id,
+                    collateral,
+                    debt,
+                    liquidator: liquidator.account_id,
+                    tip,
+                    now,
+                },
+            );
+            plan.effect(
+                &auction,
+                &Effect::CreateAuction(AuctionState {
+                    config_id: terms.config_id,
+                    collateral_seized: lot,
+                    collateral_left: lot,
+                    collateral_sold: 0,
+                    to_raise,
+                    raised: 0,
+                    price,
+                    opened_at: now,
+                    last_seen: now,
+                    settled: 0,
+                    min_multiplier: terms.min_multiplier,
+                    max_multiplier: terms.max_multiplier,
+                    window: terms.window,
+                }),
+            );
+            plan.event(event(
+                "Liquidated",
+                &Liquidated {
+                    position_id,
+                    ctype_id,
+                    auction_id,
+                    liquidator: liquidator.account_id,
+                    tip,
+                    lot,
+                    to_raise,
+                    price,
+                    at: now,
+                },
+            ));
+        }
+        Instruction::InitDebtConfig { config_id, terms } => {
+            let [debt_config, config, admin] = rows::<3>(input);
+            expect_row(&debt_config, debt_config_account(&me, &config_id), &me, "the row is not this config's debt auction terms");
+            expect_row(&config, config_account(&me, &config_id), &me, "no config at this id");
+            expect_signer_handle(&admin, &me);
+            validate_debt_terms(&terms);
+            plan.effect(&config, &Effect::CheckAdmin { admin: admin.account_id });
+            plan.effect(&debt_config, &Effect::CreateDebtConfig(DebtConfig { terms }));
+        }
+        Instruction::BookShortfall {
+            auction_id,
+            config_id,
+            shortfall,
+            now,
+            terms,
+        } => {
+            let [auction, debt_config, debt_auction, caller] = rows::<4>(input);
+            expect_row(&auction, auction_account(&me, &auction_id), &me, "no auction at this id");
+            expect_row(&debt_config, debt_config_account(&me, &config_id), &me, "no debt auction terms for this config");
+            expect_row(&debt_auction, debt_auction_account(&me, &auction_id), &me, "the row is not this auction's debt auction");
+            expect_signer_handle(&caller, &me);
+            refuse_unless(shortfall > 0, E_NO_SHORTFALL, "a shortfall of zero");
+            validate_debt_terms(&terms);
+            let end = now
+                .checked_add(terms.auction_ttl_ms)
+                .unwrap_or_else(|| refuse(E_ARITHMETIC, "the auction's end overflows"));
+            plan.timestamp_window(bounded(now));
+            plan.effect(&auction, &Effect::CheckShortfall { config_id, shortfall });
+            plan.effect(&debt_config, &Effect::CheckDebtConfig(terms.clone()));
+            plan.effect(
+                &debt_auction,
+                &Effect::CreateDebtAuction(DebtAuction {
+                    source_auction: auction_id,
+                    config_id,
+                    protocol_token: terms.protocol_token,
+                    coin: shortfall,
+                    lot: terms.initial_lot,
+                    beg: terms.beg,
+                    bid_ttl_ms: terms.bid_ttl_ms,
+                    has_bid: 0,
+                    bidder: caller.account_id,
+                    bid_expiry: end,
+                    end,
+                    last_seen: now,
+                    settled: 0,
+                }),
+            );
+            plan.event(event(
+                "ShortfallBooked",
+                &ShortfallBooked {
+                    auction_id,
+                    shortfall,
+                    lot: terms.initial_lot,
+                    at: now,
+                },
+            ));
+        }
+        Instruction::DebtBid { auction_id, lot, now } => {
+            let [debt_auction, bidder] = rows::<2>(input);
+            expect_row(&debt_auction, debt_auction_account(&me, &auction_id), &me, "no debt auction at this id");
+            expect_signer_handle(&bidder, &me);
+            plan.timestamp_window(bounded(now));
+            plan.effect(&debt_auction, &Effect::DebtBid { bidder: bidder.account_id, lot, now });
+            plan.event(event(
+                "DebtBidPlaced",
+                &DebtBidPlaced {
+                    auction_id,
+                    bidder: bidder.account_id,
+                    lot,
+                    at: now,
+                },
+            ));
+        }
+        Instruction::SettleDebtAuction { auction_id, now } => {
+            let [debt_auction, caller] = rows::<2>(input);
+            expect_row(&debt_auction, debt_auction_account(&me, &auction_id), &me, "no debt auction at this id");
+            expect_signer_handle(&caller, &me);
+            plan.timestamp_window(now..);
+            plan.effect(&debt_auction, &Effect::DebtSettle { now });
+            plan.event(event("DebtAuctionSettled", &AuctionSettled { auction_id, at: now }));
+        }
     }
     plan
+}
+
+/// `[now, now + START_WINDOW_MS)`: valid from the time named, and not long after.
+fn bounded(now: u64) -> TimestampValidityWindow {
+    let until = now
+        .checked_add(START_WINDOW_MS)
+        .unwrap_or_else(|| refuse(E_TIME_WENT_BACKWARDS, "time overflows"));
+    TimestampValidityWindow::try_from(now..until).expect("a positive window is not empty")
 }
 
 // -------------------------------------------------------------------- apply
@@ -562,6 +942,54 @@ pub fn apply(effect: Effect, pre: &[u8]) -> Option<Vec<u8>> {
         }
         Effect::Buy { bid, now } => Some(store(&buy(load_auction(pre), bid, now))),
         Effect::Settle { now } => Some(store(&settle(load_auction(pre), now))),
+        Effect::CreateCtype(c) => {
+            refuse_unless(pre.is_empty(), E_EXISTS, "a collateral type already exists at this id");
+            Some(store(&c))
+        }
+        Effect::PushPrice { admin, price, now } => Some(store(&push_price(load_ctype(pre), admin, price, now))),
+        Effect::CheckCtype => {
+            let _ = load_ctype(pre);
+            None
+        }
+        Effect::CreatePosition(p) => {
+            refuse_unless(pre.is_empty(), E_EXISTS, "a position already exists at this id");
+            Some(store(&p))
+        }
+        Effect::CheckFeed { terms, price, now } => {
+            check_feed(&load_ctype(pre), &terms, price, now);
+            None
+        }
+        Effect::Seize {
+            ctype_id,
+            collateral,
+            debt,
+            liquidator,
+            tip,
+            now,
+        } => Some(store(&seize(load_position(pre), ctype_id, collateral, debt, liquidator, tip, now))),
+        Effect::CheckAdmin { admin } => {
+            refuse_unless(load_config(pre).admin == admin, E_NOT_ADMIN, "signer is not this config's admin");
+            None
+        }
+        Effect::CreateDebtConfig(c) => {
+            refuse_unless(pre.is_empty(), E_EXISTS, "this config's debt auction terms are already set");
+            Some(store(&c))
+        }
+        Effect::CheckShortfall { config_id, shortfall } => {
+            check_shortfall(&load_auction(pre), &config_id, shortfall);
+            None
+        }
+        Effect::CheckDebtConfig(terms) => {
+            refuse_unless(load_debt_config(pre).terms == terms, E_CONFIG_MISMATCH, "the debt terms named are not this config's");
+            None
+        }
+        Effect::CreateDebtAuction(d) => {
+            // One debt auction per collateral auction: a shortfall is booked once.
+            refuse_unless(pre.is_empty(), E_EXISTS, "this auction's shortfall is already booked");
+            Some(store(&d))
+        }
+        Effect::DebtBid { bidder, lot, now } => Some(store(&debt_bid(load_debt_auction(pre), bidder, lot, now))),
+        Effect::DebtSettle { now } => Some(store(&debt_settle(load_debt_auction(pre), now))),
     }
 }
 
@@ -598,7 +1026,67 @@ pub mod rows {
     pub fn handle(program: &AccountId, auction_id: &[u8; 32], signer: AccountId) -> Vec<ProgramShardSelector> {
         vec![sel(auction_account(program, auction_id), *program), sel(signer, *program)]
     }
+
+    #[must_use]
+    pub fn init_ctype(program: &AccountId, ctype_id: &[u8; 32], config_id: &[u8; 32], admin: AccountId) -> Vec<ProgramShardSelector> {
+        vec![
+            sel(ctype_account(program, ctype_id), *program),
+            sel(config_account(program, config_id), *program),
+            sel(admin, *program),
+        ]
+    }
+
+    #[must_use]
+    pub fn update_price(program: &AccountId, ctype_id: &[u8; 32], admin: AccountId) -> Vec<ProgramShardSelector> {
+        vec![sel(ctype_account(program, ctype_id), *program), sel(admin, *program)]
+    }
+
+    #[must_use]
+    pub fn open_position(program: &AccountId, position_id: &[u8; 32], ctype_id: &[u8; 32], owner: AccountId) -> Vec<ProgramShardSelector> {
+        vec![
+            sel(position_account(program, position_id), *program),
+            sel(ctype_account(program, ctype_id), *program),
+            sel(owner, *program),
+        ]
+    }
+
+    #[must_use]
+    pub fn liquidate(program: &AccountId, position_id: &[u8; 32], ctype_id: &[u8; 32], liquidator: AccountId) -> Vec<ProgramShardSelector> {
+        vec![
+            sel(position_account(program, position_id), *program),
+            sel(ctype_account(program, ctype_id), *program),
+            sel(auction_account(program, &liquidation_auction_id(position_id)), *program),
+            sel(liquidator, *program),
+        ]
+    }
+
+    #[must_use]
+    pub fn init_debt_config(program: &AccountId, config_id: &[u8; 32], admin: AccountId) -> Vec<ProgramShardSelector> {
+        vec![
+            sel(debt_config_account(program, config_id), *program),
+            sel(config_account(program, config_id), *program),
+            sel(admin, *program),
+        ]
+    }
+
+    #[must_use]
+    pub fn book_shortfall(program: &AccountId, auction_id: &[u8; 32], config_id: &[u8; 32], caller: AccountId) -> Vec<ProgramShardSelector> {
+        vec![
+            sel(auction_account(program, auction_id), *program),
+            sel(debt_config_account(program, config_id), *program),
+            sel(debt_auction_account(program, auction_id), *program),
+            sel(caller, *program),
+        ]
+    }
+
+    /// `[debt_auction, signer handle]`: debt_bid, settle_debt_auction.
+    #[must_use]
+    pub fn debt_handle(program: &AccountId, auction_id: &[u8; 32], signer: AccountId) -> Vec<ProgramShardSelector> {
+        vec![sel(debt_auction_account(program, auction_id), *program), sel(signer, *program)]
+    }
 }
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod engine_tests;

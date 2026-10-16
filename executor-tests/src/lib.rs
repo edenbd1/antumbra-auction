@@ -108,6 +108,12 @@ impl Chain {
         antumbra_auction_core::load_config(self.state.get_account_by_id(id).data.shard(AUCTION))
     }
 
+    /// This program's shard of any account, empty when nothing was written.
+    #[must_use]
+    pub fn shard(&self, id: AccountId) -> Vec<u8> {
+        self.state.get_account_by_id(id).data.shard(AUCTION).to_vec()
+    }
+
     /// The raw bytes of an auction shard, empty when nothing was created.
     #[must_use]
     pub fn auction_bytes(&self, auction_id: &[u8; 32]) -> Vec<u8> {

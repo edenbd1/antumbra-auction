@@ -113,3 +113,10 @@ jobs:
         run: |
           DEPLOY=1 PAYER=6iArKUXxhUJqS7kCaPNhwMWt3ro71PDyBj7jwAyE2VQV OUT=/tmp/ci-e2e.tsv TAG=ci ./scripts/e2e-v03.sh
           ./scripts/verify-onchain.sh --manifest /tmp/ci-e2e.tsv --rpc http://127.0.0.1:3040
+      - name: Liquidation, the feed and the debt auction (F1, F4, R2, R4, R5), and verify
+        env:
+          LEE_WALLET_HOME_DIR: /tmp/wallet
+          SUPPRESS_VERBOSE_PRINTS: "1"
+        run: |
+          DEPLOY=1 GAS_LIMIT=150000 PAYER=6iArKUXxhUJqS7kCaPNhwMWt3ro71PDyBj7jwAyE2VQV OUT=/tmp/ci-liq.tsv TAG=ci-liq ./scripts/e2e-liquidation-v03.sh
+          ./scripts/verify-onchain.sh --manifest /tmp/ci-liq.tsv --rpc http://127.0.0.1:3040

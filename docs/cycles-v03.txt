@@ -1,6 +1,16 @@
 | op | cycles | share of the 10M gas cap |
 |---|---:|---:|
-| init_config | 24379 | 0.24% |
-| start_auction | 41796 | 0.42% |
-| buy_collateral (partial fill) | 54243 | 0.54% |
-| buy_collateral (re-struck, lot exhausted) | 55666 | 0.56% |
+| init_config | 24348 | 0.24% |
+| start_auction | 41619 | 0.42% |
+| buy_collateral (partial fill) | 54058 | 0.54% |
+| buy_collateral (re-struck, lot exhausted) | 55481 | 0.55% |
+| init_collateral_type | 42155 | 0.42% |
+| init_debt_config | 37356 | 0.37% |
+| open_position | 40187 | 0.40% |
+| update_price (first) | 27127 | 0.27% |
+| update_price (second) | 27658 | 0.28% |
+| liquidate (opens the auction) | 98382 | 0.98% |
+| buy_collateral (buy-out, closes short) | 55594 | 0.56% |
+| book_shortfall (opens the debt auction) | 57962 | 0.58% |
+| debt_bid | 36723 | 0.37% |
+| settle_debt_auction | 26647 | 0.27% |

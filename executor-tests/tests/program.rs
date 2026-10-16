@@ -302,6 +302,9 @@ fn every_reachable_refusal_code_fires_on_chain() {
         .iter()
         .map(|(c, _)| *c)
         .filter(|c| ![E_NOTHING_LEFT, E_ARITHMETIC].contains(c))
+        // 8015 onwards belong to liquidation, the feed and the debt auction;
+        // tests/engine.rs fires each of them by name.
+        .filter(|c| *c < E_FEED_STALE)
         .collect();
     assert_eq!(fired, reachable);
 }

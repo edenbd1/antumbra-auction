@@ -21,9 +21,19 @@ pub const E_EXISTS: u32 = 8011;
 pub const E_ACCOUNTS: u32 = 8012;
 pub const E_NOT_SIGNED: u32 = 8013;
 pub const E_CONFIG_MISMATCH: u32 = 8014;
+// 8015 onwards: liquidation, the price feed and the debt auction (F1, F4, R2, R4).
+pub const E_FEED_STALE: u32 = 8015;
+pub const E_PRICE_MISMATCH: u32 = 8016;
+pub const E_POSITION_SAFE: u32 = 8017;
+pub const E_ALREADY_LIQUIDATED: u32 = 8018;
+pub const E_POSITION_MISMATCH: u32 = 8019;
+pub const E_NO_SHORTFALL: u32 = 8020;
+pub const E_NOT_AN_IMPROVEMENT: u32 = 8021;
+pub const E_CLOSED: u32 = 8022;
+pub const E_NO_BID: u32 = 8023;
 
 /// Every code with its name, in the order the IDL lists them.
-pub const ALL: [(u32, &str); 14] = [
+pub const ALL: [(u32, &str); 23] = [
     (E_NOT_ANCHORED, "NotAnchored"),
     (E_BAD_STATE, "BadState"),
     (E_NOT_ADMIN, "NotAdmin"),
@@ -38,6 +48,15 @@ pub const ALL: [(u32, &str); 14] = [
     (E_ACCOUNTS, "Accounts"),
     (E_NOT_SIGNED, "NotSigned"),
     (E_CONFIG_MISMATCH, "ConfigMismatch"),
+    (E_FEED_STALE, "FeedStale"),
+    (E_PRICE_MISMATCH, "PriceMismatch"),
+    (E_POSITION_SAFE, "PositionSafe"),
+    (E_ALREADY_LIQUIDATED, "AlreadyLiquidated"),
+    (E_POSITION_MISMATCH, "PositionMismatch"),
+    (E_NO_SHORTFALL, "NoShortfall"),
+    (E_NOT_AN_IMPROVEMENT, "NotAnImprovement"),
+    (E_CLOSED, "Closed"),
+    (E_NO_BID, "NoBid"),
 ];
 
 /// Refuse the transaction with `code`.
