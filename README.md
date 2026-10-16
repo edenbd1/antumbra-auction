@@ -26,8 +26,9 @@ then settle — is **27,753** cycles, 0.083 % of the session budget.
 
 The auction program now runs on LEZ v0.3: rewritten on `lee_core`'s plan/apply
 model in [`programs/auction`](programs/auction), its binary a reproducible Docker
-build (`artifacts/programs/v0.3/antumbra_auction.bin`, ImageID `dc3618e8…`), 15
-host tests and 16 tests of the committed binary through `lee::V03State`, a CLI
+build (the deployed one, ImageID `dc3618e8…`, kept at
+`artifacts/programs/v0.3/deployed-dc3618e8/antumbra_auction.bin`), host tests and
+tests of the committed binary through `lee::V03State`, a CLI
 on the v0.3 wallet (`cli/`), and a full local run on a v0.3.1 sequencer:
 8 applied, 12 refused as required, 0 failures, re-checked at 26 checks
 ([`evidence/v03/`](evidence/v03/README.md)). What changed and why, and how to run
@@ -36,6 +37,17 @@ the program is deployed at `ADLHPytqfLnzM2hfoJUx6ZXPLwFo6o4RmqXWRJGETMJ7` and it
 26 checks, 0 failures (`./scripts/verify-onchain.sh --manifest
 evidence/v03/testnet.tsv --rpc https://testnet.lez.logos.co`). The v0.2.4
 deployment below is history; its transactions died with the reset of 2026-09-30.
+
+**Liquidation, the price feed and the debt auction (F1, F4, R2, R4, R5)** are
+in the committed binary, `artifacts/programs/v0.3/antumbra_auction.bin`
+(ImageID `72c22843…`): collateral types with a time-weighted feed that pauses
+only the stale type, a permissionless `liquidate` that opens the auction, and a
+debt auction for a shortfall. A local run on a v0.3.1 sequencer has three
+different fresh signers liquidate, a shortfall booked and auctioned, and one
+type paused while the other keeps liquidating and its auction keeps taking bids
+([`evidence/v03/liquidation/`](evidence/v03/liquidation/README.md)). It is a new
+ImageID, so the public testnet needs a new deployment; that run is one command,
+`scripts/testnet-liquidation-v03.sh` ([`docs/deploy-v03.md`](docs/deploy-v03.md)).
 
 ## What this found
 

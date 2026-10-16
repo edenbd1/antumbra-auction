@@ -1,0 +1,81 @@
+# run against http://127.0.0.1:3046, 2026-10-16T21:19:55Z
+# program Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ 72c22843aa2c128f2e580ed7d96a478e6184b9d734dd09abe29199c1c4c1a433
+# payer spent 3688992 on the deploy
+# gas limit 150000 on every transaction (a refused one forfeits gas_limit x base fee)
+# payer 6iArKUXxhUJqS7kCaPNhwMWt3ro71PDyBj7jwAyE2VQV admin 6iArKUXxhUJqS7kCaPNhwMWt3ro71PDyBj7jwAyE2VQV owner H1YKFfFV1QcVcp847d5z9W5V1JDigKVbbDmee7K5Kmwb keeper1 s1LQWxMvBPNpPqpcaRzFFFnPk2dUeS2qWHSG3aeodzj keeper2 Ed79qZ93HUL1yLVBDyBugwovW8YhDvPBvWDW9StRFZgi keeper3 8S95dTbxomcTNPXUq641vs7ZV3oZ2KiHBwX81uFyS5rS bidder CvvzFpk9gtbjUwdR4mUzU6nmxj5YGTgDkDQELC7vUw9F
+# check ok: three liquidators, three different accounts = 3
+# payer balance before 9998938460425
+init-config	applied	applied	171	aa1ef9f137c8cd870f937c380329bbbce55acd8f392c452483c1d42945c77b90
+init-type-a	applied	applied	172	aa01ff9b1b9d4cb00b746002101bc7bb12ac7e1f01eabccc2db21613fe78602c
+init-type-b	applied	applied	173	1c743fa4c717e649eca30061bd87aa4524b9b7d9d77f0e8e5da614a256713fa6
+init-type-by-non-admin	refused	reverted	174	d33c990e70e386d84432a183d143b2e00800b58603269089ef742a9212f0df93
+init-debt-terms	applied	applied	175	fb38be7c789532918f5c380bc5006d4b9a780e2e0d103bb5425bb91792aeb94e
+open-pos-1	applied	applied	176	1e45092f5215b92413f4208617345f5dc7269de091a9a573825d021ccc7af71f
+open-pos-2	applied	applied	177	0249696c6fc82227968f8ee3c09ba7647a63c1071967c8eef7f99e77d44b23a9
+open-pos-4	applied	applied	178	988bf2fe214e1dc07fa601fedabd3989b9b81638ff78901c7195d1f18611bc9e
+open-pos-3	applied	applied	179	d43c1398d616476c79f56b9d42bba5f4ec90d1691885ce6645b643719213e647
+open-pos-5	applied	applied	180	f3f15784b74b3ec959aa07a5a951628e8f5b6fce2c6a8ff0a569c9ba74abc75c
+price-a-2000	applied	applied	181	91835b0ce1ea92dc477bb3f053d1a72adcdb04a76108b77e21671e45bb97350d
+price-b-100	applied	applied	182	0c9188e39065e3e00170aa6d12833adc544d651387b6e33091e744c9e21f24d2
+price-by-non-admin	refused	reverted	183	8f8ac342cd44f5213ad49cf55dbb4d1fdcffc22833bb111956cf49a29e6a71d1
+liquidate-safe	refused	reverted	184	d4bce18385a37d333bfe524b60f2d59d9fbb9207b154e8a2b68094847f00a30d
+# check ok: the safe position is untouched = 0
+price-a-1000	applied	applied	185	92aac619d92c11bc6660e0eca783e29ecc2c20a4d1b1c5d66df595893678efdc
+price-b-50	applied	applied	186	064d970f25bc2d9660cbfa4b99ce7041bf378c162b4fe877834178436aa44e88
+# A's time-weighted price before liquidating: 1571453061457728168839
+liquidate-p1-by-keeper1	applied	applied	188	bdce24d7ed727fb26e3d42ba99c44a51bdae373d152c6a5fd450d53df86ec152
+liquidate-p1-again-by-keeper2	refused	reverted	189	8f6e0ffb5623c36f11cc2e868b08fe0e029e3f90cd173ae588e709208cd7524d
+liquidate-p2-by-keeper2	applied	applied	190	3747eaedf674cee618e0a014b99d208790b90763305471a3d58b92ba5e1b138f
+liquidate-p3-by-keeper3	applied	applied	191	432186dbcffbb10064bca6e7148b3e51f36faf89d15ca636b779b459535a86c0
+# check ok: p1 liquidated by keeper 1 = s1LQWxMvBPNpPqpcaRzFFFnPk2dUeS2qWHSG3aeodzj
+# check ok: p2 liquidated by keeper 2 = Ed79qZ93HUL1yLVBDyBugwovW8YhDvPBvWDW9StRFZgi
+# check ok: p3 (type B) liquidated by keeper 3 = 8S95dTbxomcTNPXUq641vs7ZV3oZ2KiHBwX81uFyS5rS
+# check ok: the keeper's tip is 2% of the collateral = 200000000000000000
+# check ok: p1's auction raises debt plus 13% = 13560000000000000000000
+# check ok: p1's auction sells the lot less the tip = 9800000000000000000
+buy-out-p1	applied	applied	196	ddf7edb22055ccfc564453970a4f64ee76a8a9847497a47e33d7258138e1882b
+# check ok: p1's lot is gone = 0
+# check ok: sold + left == seized (R6) = True
+# check ok: p1's auction closed itself = 1
+# check ok: it closed short of debt plus penalty = True
+book-wrong-amount	refused	reverted	197	fe898fa76bcab4130ccc237967c18854e56d69bd4274668a8d999515df14493f
+book-shortfall-by-keeper2	applied	applied	198	b3f38cd299552927e12e555d08404dd4397f0248ba0b10f603f485edc342bc5b
+book-again-by-keeper3	refused	reverted	199	3b4ebc03e834a7a028cccd626baabc14636ac5e004019515e6d8f40a263f62d6
+# check ok: the debt auction covers exactly the shortfall = 1239807998171411156304
+# check ok: it offers the configured lot of the protocol token = 1000000000000000000000
+settle-debt-no-bid	refused	reverted	200	dfbec35f09e5f2f7d224b11bcdc2494b9a1d9c7cf82b4e9c4b6ba329a61a4b4c
+debt-bid-not-3pct	refused	reverted	201	c7d0e23addf8688d4e8ecad860b07b7d4152dd2075b0b48c7734500d100f57f1
+debt-bid-keeper1-970	applied	applied	202	e5420c9d9b28a1329db52dc0785de9d7d49960e9bd39909ae53b1a815d2b2bc6
+debt-bid-unchanged	refused	reverted	203	ad5622c2a7ba46c468c98e0885293373edd822fe758901e90397cfabcf707349
+debt-bid-keeper2-900	applied	applied	204	25b254f757c182dfe14965d7f5985087dc522aaf8ca59692da0aaf444e1bf040
+settle-debt-early	refused	reverted	205	a1d415ce9765f69f35be9ac145e04cadc7889994baddecadcc0e99083dd59cbd
+settle-debt	applied	applied	208	af7e6d8d1ea81f2fe1ead7aad274185eda5a952c3b4f2c7a1679d6c39681c696
+# check ok: the debt auction settled = 1
+# check ok: keeper 2 won it = Ed79qZ93HUL1yLVBDyBugwovW8YhDvPBvWDW9StRFZgi
+# check ok: for 900 of the protocol token = 900000000000000000000
+price-b-refresh	applied	applied	209	4f4dd1379c533d6d9485dc268fa13ed82ae7c4cda75755dee1270d9ba2ce0575
+# check ok: A's feed is stale = True
+# check ok: B's feed is fresh = False
+liquidate-p4-stale-type-a	refused	reverted	210	27a5b836751b286bd61d8fa555785b7a576ab278c89c71c2d3713d1c7afabb0b
+# check ok: p4 is untouched while A is paused = 0
+liquidate-p5-type-b-by-keeper2	applied	applied	211	9161875182ce4a21db07377e6e39210df93e60166597a780291baf6cc05163ea
+bid-on-type-a-auction	applied	applied	212	91ffc37c0781ce5ba8d23b996b045a56d6ee75f0312604a4f9ac9cf5bea728f9
+# check ok: type A's auction kept taking bids = True
+price-a-resumes	applied	applied	213	a4249525f12349958d31c2b4424954bd736df07d11345f4183d3053a9c6f1554
+liquidate-p4-by-keeper3	applied	applied	214	332918801c3e2469eced8b33c382cf3aeeb4e2d6255f29b91fc6b77afe57fd9b
+# check ok: p4 liquidated once A's feed resumed = 8S95dTbxomcTNPXUq641vs7ZV3oZ2KiHBwX81uFyS5rS
+# payer balance after 9998914833697
+# payer spent 23626728 over 37 transactions
+# final 2GpSRaSSrVqFLqKDEzZmP4XNtnBKwNxgHGtQyxstbnWS Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ 039465d2464bb01dbba30f9dd8e8637ad927051687295f3c36519a021ba14b1c
+# final 4SJKLGAzAVX1NVPCGygnqZkFTjCuMFsXuUCAV51DvAP7 Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ a7df7abcdc312d9add8c93b34fbd4ccd8a67410c66f7d4deb03c104c86368d17
+# final 4TUTgFjANdwiLCqfRV7rv2RZEaQTk6GyzrCBQVXac4YU Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ 873760c16aef7e9c3790f1909580c700cd6a7e1df5fae71b93dce976d255ce38
+# final 86LUdt2RnkqUq8frtFxNteH45ZncLvUABUDwDYK3w2Z Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ e1132762141bcd5427b7c79ecccf45ecf8e73ed8691b700cb19a74b3c1d6212b
+# final 7U3XFyYVnb4eXeEdHnsM4VfY24HbaNrMBjuhf2dNV5pc Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ b795956bf8511d0b1c5ef4c71b9865dc262e98cb2b110c1c1d46b1e88b7bf6d4
+# final 2SU8bZGsR172tbS5MD2YmZJ36MbQCdc8XjmaoqnLSrBV Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ 799bafa80acd7a421b0c1ace151ec78e7da4e2c798ae4d7921a0967ebf099f58
+# final 7pnqTK4hsoiwbszoiSgah5FhTWoyqoidZUqVc8fvENV3 Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ a6c094c0bb59f23bc5ca2da658c619c6062b64519650c5e1e89ec1495fe08a21
+# final 49dikaNC36yddmGLEiL8SEqQoqyX49WmsJKTEN5RRBVt Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ d5956e3db7208cbc68c9781a79b67826b1b953afe6b9be00ee2f670cb6a7dabb
+# final Gfnyt6Xgp8hAkbGZ9J8ZRE1PTbhJd6FJLkUNvLbg1EN2 Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ ace638e61000377ebf6846a33768b035ee5bc3b336aa0a5029b3f206b78d132b
+# final 4hGtiA6gmVqf7x6E3qfriYnEtinuHvH1jQWvfQovjQNL Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ e64f40eedff363007abdc03ed14388b56e1fc1bb65700a0a63c2cdd6cdb666ba
+# final 4etAKdGWg7YXEC51R4L6rfnxRX2b8Zw7Yr8fa3TvKCAK Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ 8560f027138dd547e42bf17d4854d392f7fb505dd81cdcd12ff53cfa8cff6c97
+# final HPHcKFrZESxLTXLFiRvHLLJdik33aRofXNc4YkcrFcdd Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ b0f3a2b3e7cf5226f2f578a8cdddd3943bc7f79cde4d924635ba381a7fb227d5
+# final 6kLyqEHqTnrdZTzNgqzyC7NGBjwp6SA36asAWY7vCk7p Ez3z28CUaJDvFTvtSVceUPAaZWmFX7ymHQJJJmFu6fJQ ccf90c82905ef344f0693ec5226a66ea982aea681709970be25ec037b2f5c43d

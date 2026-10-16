@@ -1,0 +1,14 @@
+# Refused transactions of local-e2e.tsv and the code each was refused with, as the
+# local sequencer logged them (seq.log prints the guest's panic, without a hash; each
+# refusal is logged by two passes and the run's refusals are in manifest order).
+init-type-by-non-admin	E8003
+price-by-non-admin	E8003
+liquidate-safe	E8017
+liquidate-p1-again-by-keeper2	E8018
+book-wrong-amount	E8020
+book-again-by-keeper3	E8011
+settle-debt-no-bid	E8023
+debt-bid-not-3pct	E8021
+debt-bid-unchanged	E8021
+settle-debt-early	E8010
+liquidate-p4-stale-type-a	E8015

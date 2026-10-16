@@ -1,0 +1,54 @@
+antumbra_auction v0.3 against http://127.0.0.1:3046, from evidence/v03/liquidation/local-e2e.tsv
+  ok   program header Ez3z28CUaJDv… names ImageID 72c22843aa2c128f…
+  ok   init-config: applied, in block 171
+  ok   init-type-a: applied, in block 172
+  ok   init-type-b: applied, in block 173
+  ok   init-type-by-non-admin: reverted, in block 174
+  ok   init-debt-terms: applied, in block 175
+  ok   open-pos-1: applied, in block 176
+  ok   open-pos-2: applied, in block 177
+  ok   open-pos-4: applied, in block 178
+  ok   open-pos-3: applied, in block 179
+  ok   open-pos-5: applied, in block 180
+  ok   price-a-2000: applied, in block 181
+  ok   price-b-100: applied, in block 182
+  ok   price-by-non-admin: reverted, in block 183
+  ok   liquidate-safe: reverted, in block 184
+  ok   price-a-1000: applied, in block 185
+  ok   price-b-50: applied, in block 186
+  ok   liquidate-p1-by-keeper1: applied, in block 188
+  ok   liquidate-p1-again-by-keeper2: reverted, in block 189
+  ok   liquidate-p2-by-keeper2: applied, in block 190
+  ok   liquidate-p3-by-keeper3: applied, in block 191
+  ok   buy-out-p1: applied, in block 196
+  ok   book-wrong-amount: reverted, in block 197
+  ok   book-shortfall-by-keeper2: applied, in block 198
+  ok   book-again-by-keeper3: reverted, in block 199
+  ok   settle-debt-no-bid: reverted, in block 200
+  ok   debt-bid-not-3pct: reverted, in block 201
+  ok   debt-bid-keeper1-970: applied, in block 202
+  ok   debt-bid-unchanged: reverted, in block 203
+  ok   debt-bid-keeper2-900: applied, in block 204
+  ok   settle-debt-early: reverted, in block 205
+  ok   settle-debt: applied, in block 208
+  ok   price-b-refresh: applied, in block 209
+  ok   liquidate-p4-stale-type-a: reverted, in block 210
+  ok   liquidate-p5-type-b-by-keeper2: applied, in block 211
+  ok   bid-on-type-a-auction: applied, in block 212
+  ok   price-a-resumes: applied, in block 213
+  ok   liquidate-p4-by-keeper3: applied, in block 214
+  ok   final state of 2GpSRaSSrVqF… shard Ez3z28CU… is as the run left it
+  ok   final state of 4SJKLGAzAVX1… shard Ez3z28CU… is as the run left it
+  ok   final state of 4TUTgFjANdwi… shard Ez3z28CU… is as the run left it
+  ok   final state of 86LUdt2RnkqU… shard Ez3z28CU… is as the run left it
+  ok   final state of 7U3XFyYVnb4e… shard Ez3z28CU… is as the run left it
+  ok   final state of 2SU8bZGsR172… shard Ez3z28CU… is as the run left it
+  ok   final state of 7pnqTK4hsoiw… shard Ez3z28CU… is as the run left it
+  ok   final state of 49dikaNC36yd… shard Ez3z28CU… is as the run left it
+  ok   final state of Gfnyt6Xgp8hA… shard Ez3z28CU… is as the run left it
+  ok   final state of 4hGtiA6gmVqf… shard Ez3z28CU… is as the run left it
+  ok   final state of 4etAKdGWg7YX… shard Ez3z28CU… is as the run left it
+  ok   final state of HPHcKFrZESxL… shard Ez3z28CU… is as the run left it
+  ok   final state of 6kLyqEHqTnrd… shard Ez3z28CU… is as the run left it
+  ok   control: a random hash does not resolve
+52 checks pass, 0 fail (22 state checks recorded during the run)

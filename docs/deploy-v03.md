@@ -31,14 +31,22 @@ refused transition F6 asks for.
 
 `artifacts/programs/v0.3/antumbra_auction.bin`, built with
 `scripts/build-guest.sh` in RISC Zero's pinned Docker builder (`r0.1.91.1`).
-ImageID `dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f`.
-A clean clone rebuilds it byte for byte, and the `LEZ v0.3` workflow checks it.
+ImageID `72c22843aa2c128f2e580ed7d96a478e6184b9d734dd09abe29199c1c4c1a433`: the
+auction house plus liquidation, the feed and the debt auction (below). A clean
+clone rebuilds it byte for byte, and the `LEZ v0.3` workflow checks it.
+
+The binary deployed on the public testnet on 2026-10-15, the auction house
+alone, is kept byte for byte at
+`artifacts/programs/v0.3/deployed-dc3618e8/antumbra_auction.bin`, ImageID
+`dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f`. The newer
+binary only appends instructions (4 to 11), so every call the older one takes
+encodes and behaves the same.
 
 ## Tests
 
 ```bash
-cargo test --release --manifest-path programs/auction/Cargo.toml -p antumbra-auction-core   # 15 host tests
-cargo test --release --manifest-path executor-tests/Cargo.toml                              # 16, the committed binary through lee::V03State
+cargo test --release --manifest-path programs/auction/Cargo.toml -p antumbra-auction-core   # 30 host tests
+cargo test --release --manifest-path executor-tests/Cargo.toml                              # 18, the committed binary through lee::V03State
 cargo run  --release --manifest-path executor-tests/Cargo.toml --bin measure                # docs/cycles-v03.txt
 ```
 
@@ -104,3 +112,55 @@ skips what is already on chain. Every other transaction is sent again if it is
 not included within five minutes, up to three attempts, and every attempt is
 recorded in the manifest; `scripts/reresolve.py` re-reads each transaction's
 block at the end of the run, since the testnet has rewritten recent blocks.
+
+## Liquidation, the feed and the debt auction (F1, F4, R2, R4, R5)
+
+Instructions 4 to 11, in `programs/auction/core/src/engine.rs`, appended to the
+ones above so every earlier call encodes and behaves the same:
+
+| Instruction | Signed by | What it does |
+|---|---|---|
+| `InitCollateralType` | the config's admin | liquidation ratio, penalty, keeper tip, the feed's maximum age, and the config's schedule (restated, checked as at `StartAuction`) |
+| `UpdatePrice` | the config's admin | appends a price to the type's feed (the last 4 are kept); valid only in `[now, now + 2 min)` |
+| `OpenPosition` | anyone | the reference host's vault: collateral and debt in one type, never gated on a feed (R5) |
+| `Liquidate` | **anyone** (F1) | restates the type's terms, its time-weighted price at `now` and the position; seizes it, books the tip to the signer, opens the auction for `debt x penalty` over the rest of the lot; valid only in `[now, now + 2 min)` |
+| `InitDebtConfig` | the config's admin | the debt auction's protocol token address, opening lot, minimum improvement, bid and auction durations |
+| `BookShortfall` | anyone | an auction that closed with its lot gone and its target unmet opens a debt auction for exactly the shortfall, once (F4) |
+| `DebtBid` | anyone | a protocol token lot smaller than the standing one by at least 3% and one base unit; valid only in `[now, now + 2 min)`, so it cannot be back-dated under an expiry that has passed |
+| `SettleDebtAuction` | anyone | once the standing bid has expired |
+
+The price a liquidation uses is the **time-weighted** average of the feed up to
+`now` (R2): each print weighs for as long as it stood, so one print alone moves
+nothing at the moment it lands. A feed is **stale** for a liquidation if it
+would be older than its maximum age at the end of the transaction's validity
+window, so back-dating `now` cannot make a stale feed look fresh; the pause can
+come early by up to two minutes, never late. A stale feed refuses liquidation
+of its own type only (R4, code 8015); bids and settlements never read a feed
+(R5). Codes 8015 to 8023 are new; each fires in `executor-tests/tests/engine.rs`
+and in the local run (`evidence/v03/liquidation/local-refusals.txt`).
+
+The program still moves no tokens: the tip, the auction's proceeds and the
+debt auction's lot are booked, not transferred, until a system coin and a
+protocol token are pinned.
+
+### On the public testnet
+
+The build is a new ImageID (`72c22843…`), so it is a **new deployment** at a
+new header; `ADLHPytq…` and its evidence stay as they are. Every refused public
+transaction forfeits its whole reserve, `gas_limit x base fee`, so the run sets
+the gas limit to 150,000, just above `liquidate` (98,382 cycles). Measured on
+the local chain at the testnet's base fees: 3,688,992 units for the deploy and
+23,626,728 for the scenario's 37 transactions
+(`evidence/v03/liquidation/README.md`). One command, with a preflight that
+sends nothing until the payer covers that plus 25%:
+
+```bash
+cargo build --release --manifest-path cli/Cargo.toml
+DRY_RUN=1 PAYER=<funded public account> ./scripts/testnet-liquidation-v03.sh   # preflight only
+PAYER=<funded public account> [TOPUP_FROM="<id> <id> ..."] ./scripts/testnet-liquidation-v03.sh
+```
+
+It deploys, runs `scripts/e2e-liquidation-v03.sh` with a 10-minute feed age and
+5-minute debt bids (the testnet includes some transactions minutes late), and
+writes `testnet.tsv`, `testnet-transcript.txt` and `testnet-verify.txt` next to
+the local evidence.

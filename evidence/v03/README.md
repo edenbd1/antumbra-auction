@@ -1,8 +1,8 @@
 # antumbra_auction on LEZ v0.3: a local end-to-end run
 
 A fresh local LEZ v0.3.1 standalone sequencer (`1a003bfb`, the version the
-public testnet runs), the v0.3.0 wallet, the committed
-`artifacts/programs/v0.3/antumbra_auction.bin` deployed through
+public testnet runs), the v0.3.0 wallet, the binary then committed (kept at
+`artifacts/programs/v0.3/deployed-dc3618e8/antumbra_auction.bin`) deployed through
 `program_loader` at header `B31q8iMw3yXS5Ghu2R53P2N3HGv5o2Vj62uH22nFCMGi`, ImageID
 `dc3618e80b2645906b70c5aee9c6e1be50d985fc00f031c3dc03e0ad9fd9384f`, and
 `scripts/e2e-v03.sh` driving the whole lifecycle through the
