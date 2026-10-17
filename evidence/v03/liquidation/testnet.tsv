@@ -1,0 +1,82 @@
+# run against https://testnet.lez.logos.co, 2026-10-17T08:01:59Z
+# program J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 72c22843aa2c128f2e580ed7d96a478e6184b9d734dd09abe29199c1c4c1a433
+# payer spent 3688992 on the deploy
+# gas limit 150000 on every transaction (a refused one forfeits gas_limit x base fee)
+# payer A3mfZ3PXpppCsPMAaapLePgjjjhuE8jgi57ccPmrHte5 admin A3mfZ3PXpppCsPMAaapLePgjjjhuE8jgi57ccPmrHte5 owner 26TQhyLHFFW6qZqbuyDvapmSvEkEM4FtFHPyvxz2SoYN keeper1 qKryNLtRnMqNDjRtBU8PtuPUPf2wGu9gP5B5yZU4XTk keeper2 JBmY4BxkksbeLmnfTmZpY97k6WU3TEZTP6UxyhWuchuR keeper3 FGHmogoxmMrA4RpPbBewK7WNe4HAFzBrJryR2GKXNHdj bidder CfTDEcXz6sn3881Ugo9zZihEz8KHe1S9EHpAQLbCPD8s
+# check ok: three liquidators, three different accounts = 3
+# payer balance before 34655007
+init-config	applied	applied	28593	b0d6a6acd685a7afa0e15239694538e23988b328ff9c8b2ab0feedd7bc90a06b
+init-type-a	applied	applied	28599	e6fac738b40b8a34e2e3f84fc90e21c3edcf4d7a269ec5899a07eb92c88cefff
+init-type-b	applied	applied	28606	0a57cef24199748248a4fd2352b8bdd22c1839c8b51dfac73a696192587a7339
+init-type-by-non-admin	refused	reverted	28618	beaaeb945cbd22a705378f5a0a6efe86a85f82c1b94d9393bc22f92a8efff0c7
+init-debt-terms	applied	applied	28624	f4f3ea475cd19bc62469530c88878224c2fc4b86f0687f9417660bb842169989
+open-pos-1	applied	applied	28643	cbbac039ef4d97afba3bcd8df8883ef61bb87a2ed151610ce5e74aaf68a68ac8
+open-pos-2	applied	applied	28646	447dfefc3f71b4038eea85ec9bd027cd08acf869b68ed3b6c8e3b8c1b78ffb3b
+open-pos-4	applied	applied	28653	feb1b334e3efe078aec627682c920d6dc45f79c343d29a5d3184a5a362990a2a
+open-pos-3	applied	applied	28659	ea80d3dcd68b155a513f7c00c0c8cc48dc78400dd60d3d52ff0bac024449d3c3
+open-pos-5	applied	applied	28663	baf1a8187ab2da8f68be9f0fdff11d408b8bac0b8e96fbf7b2e3830c70c30dbc
+price-a-2000	applied	applied	28669	9a53d58d574c5b8085680467e34b37c28c8ca16ff64eb8c707259d18b656956b
+price-b-100	applied	applied	28670	0e34b8fd316fa9259cfdd96cfd243b6cfce14e10056e368ba0970d2084c416af
+price-by-non-admin	refused	reverted	28676	f9ee847e78573ee13e29ca57f3aaf428ca503efbdf4a786e064c7bd41c1aff76
+liquidate-safe	refused	reverted	28682	b80c1f300314efacc6d5729d31e34d4759d9e6a0a49cec51b088688715ef238a
+# check ok: the safe position is untouched = 0
+price-a-1000	applied	applied	28689	8fe495e921afd792ea47a8f566a351ddce8fe767c6aacb3467da63c273a3cb91
+price-b-50	applied	applied	28695	b534a1709f53fbff40bbacde0fd75e776029ae3c6d8ff057421301e5c04ea0bb
+# A's time-weighted price before liquidating: 1588235294117647058823
+liquidate-p1-by-keeper1	applied	applied	28698	f3f6bc1a56d58f8bb044ce3538fd346cf1244766809163cf7711126116063b4c
+liquidate-p1-again-by-keeper2	refused	reverted	28704	7a02b7f8ff0d24a10d77841618dd974db68a668607f222e581e0c4c37087bde8
+liquidate-p2-by-keeper2	applied	applied	28710	1e07981582dfcdb1c6f7a30841443dc7a53dd290a173984cde87523d5ca2fefd
+liquidate-p3-by-keeper3	applied	applied	28711	acf1fb8347b381f2e87f7e7eb92b377144c684cad716633b1674b5c9ac1d1854
+# check ok: p1 liquidated by keeper 1 = qKryNLtRnMqNDjRtBU8PtuPUPf2wGu9gP5B5yZU4XTk
+# check ok: p2 liquidated by keeper 2 = JBmY4BxkksbeLmnfTmZpY97k6WU3TEZTP6UxyhWuchuR
+# check ok: p3 (type B) liquidated by keeper 3 = FGHmogoxmMrA4RpPbBewK7WNe4HAFzBrJryR2GKXNHdj
+# check ok: the keeper's tip is 2% of the collateral = 200000000000000000
+# check ok: p1's auction raises debt plus 13% = 13560000000000000000000
+# check ok: p1's auction sells the lot less the tip = 9800000000000000000
+buy-out-p1	applied	applied	28715	9d3fad3979285cae9687256499f1553bd4f2039f531818e762cd2084e1c28412
+# check ok: p1's lot is gone = 0
+# check ok: sold + left == seized (R6) = True
+# check ok: p1's auction closed itself = 1
+# check ok: it closed short of debt plus penalty = True
+book-wrong-amount	refused	reverted	28722	28b913b8c734a8ac829028c174c08b386eee00c247410f131f8608bf9009387c
+book-shortfall-by-keeper2	applied	applied	28720	b1dd629a453de296eb7401a9448e16baed73966585284a0bb3693dbb4af3999e
+book-again-by-keeper3	refused	reverted	28732	b911ccd2c9da7688d65af0fe4bdea90a0291845760dcb6fdc4bb98210890a66d
+# check ok: the debt auction covers exactly the shortfall = 1108235294117647058831
+# check ok: it offers the configured lot of the protocol token = 1000000000000000000000
+settle-debt-no-bid	refused	reverted	28745	b1628d26f6af2a2d874ad7ae7cd0c26dc72f526ee6a9f1285dbed8c373beb3f9
+debt-bid-not-3pct	refused	reverted	28757	1748067d3fd4049ee115e5733a67766ea07428b92afc1f298b860f7ebaf1497f
+debt-bid-keeper1-970	applied	applied	28770	619c2d907dfa5a8ac5a76e5bacadb9594ad02750b2bb57c38b57f288b8603c19
+debt-bid-unchanged	refused	reverted	28776	cf2a239f1297f57fba9a55d74d878bee598f6685b70074936429b437197ea34c
+debt-bid-keeper2-900	applied	applied	28782	ae1d4e5a7b820e3a57ac457a485e7a2f304e107b2374066e5b3e47d6c9b02db2
+settle-debt-early	refused	reverted	28789	1a8b33b2f6e935d0f45cdd6319efd84cc2f8379fbe93fddafac0c6b11989e336
+settle-debt	applied	applied	28813	7482fd7711bf9aff5492a6971fe5badb699435b948afeba7dff7a386df2865c4
+# check ok: the debt auction settled = 1
+# check ok: keeper 2 won it = JBmY4BxkksbeLmnfTmZpY97k6WU3TEZTP6UxyhWuchuR
+# check ok: for 900 of the protocol token = 900000000000000000000
+price-b-refresh	applied	applied	28819	95133df5b871703d6eb5f73adb2a9b1c462e6bbfc979ab621c150115030e3e4e
+# check ok: A's feed is stale = True
+# check ok: B's feed is fresh = False
+liquidate-p4-stale-type-a	refused	reverted	28825	b91ba757561b8bb45275b48b2388a1c65047dddf39fe77db6656ac5e469e2c0a
+# check ok: p4 is untouched while A is paused = 0
+liquidate-p5-type-b-by-keeper2	applied	applied	28836	9b4cd45265ff82e2477c11dc4760f1acda65ec9bc057840bc19e736be2579dab
+bid-on-type-a-auction	applied	applied	28842	eb1f6ebf82f1f6a1ecf16c5eb7a29ceb03d320e5cf4271b5546ed39f3dc7956d
+# check ok: type A's auction kept taking bids = True
+price-a-resumes	applied	applied	28855	43681e52ed7398323b1ca448b9cbb195034eac0dc3e14b7cee197251cf60bd2a
+liquidate-p4-by-keeper3	applied	applied	28857	9c874512f7f5b590a1c52cc7246fa0fcda06f32aa95cdff1e34dde206b1a0f88
+# check ok: p4 liquidated once A's feed resumed = FGHmogoxmMrA4RpPbBewK7WNe4HAFzBrJryR2GKXNHdj
+# payer balance after 11028239
+# payer spent 23626768 over 37 transactions
+# final GdSQaE4NG96h7DyMZ1qs8U6RrK37NaqiN2iffgZHG7tW J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 034c579e40ce66de3e38aad2ec0d08c678b27a2797fc7001026a9c36aa873456
+# final 62CMV1zhq5vCDMM8kcsvmj4wEF5eYjRjQVuWvv2Z1zPV J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 2f804eb6d08215e4dc1be901f3dbcb1994b9d5645a376bdd2fe92aeb854c1105
+# final 3NVRBHrxU9yKxCo1XJZJzWtZyUp75KGQXaVYWbXSo3ng J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 1caa94aab4de4943be1d58861241581339942abe87d7ca722cdab79894af5ba3
+# final 2GmM116ej9uQrcfcdVusJjgz82sFfXuTdRt1ZgA7As89 J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 1f3c7c9f24555d71330a6f7e21b2e85a2b9b425e3262629a9fdbdd4c401a42de
+# final AwQviXBvKAQoppazHemPTuo1Uu9zXP8mm39fG4efLtXa J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 732e3aded49e4124c3e1fb3929dae338d40e94f2c75a2b40751251140ed0329a
+# final EUMREQyLJw1YVmzLYj8ZkoWjuuUpSD1jyCj8CycmviEy J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy e6f8ebcd56529bea5f5d36308286997bdb2f80843729e856bb486efd6503c39d
+# final GbPnQk1KdqPvwEy2Fsu4aafv4J8EfrJLQg44gzQVbhtU J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 2e5159846ede2402902bf49f0eb178ffc3c4150807b51bd6f009a50394976abb
+# final Fn6UKKWCSnmhchgSRptJt5S63qCFrreW2vsEHEVRVvYe J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy b893172bc2345aa39c0887d5626034e66429e0b2fbc0de086a56a580e042af21
+# final 7tboUiKVzRqoRym44D8hQwMbWJf5NYqKH9SXnRGJokpi J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy a7609b196924127ae5b1d2f88c0432f271ab3bb208badd4cc7318fa823c29cb2
+# final 391ZfoKQ1dQTtjVerEEAPqD6EpsfPLouYJisRbBMXGJU J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 70dfb5ed4f65da103dbc569df39c1c3e6acc698b51592ebd4340559754c3cc27
+# final J22Mg5G3XdXkUQSqNZ2RrP1G3HiJcFLg1MaAf2BC8mS6 J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 902729f56026f2523706cc66b2f94d0d6b6066892ef75cb8963f241e0febd68b
+# final 9XMPKjC6MJ6kBNuDHhC8aXB73Na31dNM6ZGAkdgQ73vV J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 0cb529b21d80d7ee08de1dea5986a5d02e35e71c9f89e1e7ec98c281b6243f94
+# final CiAK1wSLomiy5yTGyMSjkikzPE4W4z1WRDECdcFNedTq J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 986fa054ea3faf0ca519f48278cd33abcefe3aabe5dadbc4190813770a9db858
+# moved init-debt-terms: recorded in block 28622, in block 28624 at the end of the run

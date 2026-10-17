@@ -14,7 +14,10 @@
 #
 # What is checked, and what a v0.3 chain lets one check:
 # - applied and reverted transactions are both included in a block, and must be
-#   found on chain (one a block rewrite moved is reported as moved). On v0.3 a refused public transaction
+#   found on chain (one a block rewrite moved is reported as moved; one whose
+#   hash index the rewrite lost, so that getTransaction returns null, is looked
+#   for in the blocks near the recorded one by its hash: SHA-256 over the
+#   transaction's bytes after its variant tag). On v0.3 a refused public transaction
 #   is included and charged; what makes it a refusal is that it changed nothing,
 #   which the final-state lines below pin down.
 # - rejected and never-included transactions must not resolve.
@@ -45,7 +48,7 @@ if [ ! -f "$MANIFEST" ]; then
 fi
 
 python3 - "$MANIFEST" "$RPC" <<'PY'
-import hashlib, json, os, secrets, sys, urllib.request
+import base64, hashlib, json, os, secrets, sys, urllib.request
 
 manifest, rpc = sys.argv[1], sys.argv[2]
 
@@ -67,8 +70,34 @@ def b58(b):
         n, r = divmod(n, 58); s = B58[r] + s
     return "1" * (len(b) - len(b.lstrip(b"\0"))) + s
 assert b58(bytes([0xFE] * 32)) == LOADER
+def unb58(s):
+    n = 0
+    for c in s:
+        n = n * 58 + B58.index(c)
+    return n.to_bytes(32, "big")
 
-ok = bad = moved = 0
+def scan_for(tx, around, program):
+    # A public transaction of `program` whose SHA-256 over the bytes after its
+    # variant tag is `tx`, in a block near `around`: the block, or None.
+    want, pid = bytes.fromhex(tx), unb58(program)
+    for b in range(max(1, around - 10), around + 100):
+        r = call("getBlock", b).get("result")
+        if r is None:
+            break
+        raw = base64.b64decode(r)
+        i = raw.find(pid)
+        while i >= 1:
+            if raw[i - 1] == 0:
+                h = hashlib.sha256()
+                for j in range(i, len(raw)):
+                    h.update(raw[j:j + 1])
+                    if h.digest() == want:
+                        return b
+            i = raw.find(pid, i + 1)
+    return None
+
+ok = bad = moved = lost = 0
+program = None
 def report(good, text):
     global ok, bad
     if good:
@@ -82,6 +111,7 @@ for line in open(manifest):
     line = line.rstrip("\n")
     if line.startswith("# program "):
         _, _, header, image = line.split()[:4]
+        program = program or header
         h = shard(header, LOADER)
         # ProgramHeader { image_id: [u32; 8], program_first_segment, immutable }
         got = h[:32].hex() if len(h) >= 32 else ""
@@ -106,16 +136,22 @@ for line in open(manifest):
             # (the public testnet has) can move an included transaction a few
             # blocks; that is reported, not failed: what it did is pinned by
             # the final-state lines, which do not move.
+            note = ""
+            if found is None and program and block.isdigit():
+                found = scan_for(tx, int(block), program)
+                if found is not None:
+                    lost += 1
+                    note = "; index lost after a block rewrite (getTransaction returns null), found by a block scan"
             if found is not None and str(found) != block:
                 moved += 1
             report(found is not None,
-                   f"{label}: {verdict}, in block {block}" + ("" if found is None or str(found) == block else f" (now in block {found}: moved by a block rewrite)") + ("" if found is not None else " (not found on chain)"))
+                   f"{label}: {verdict}, in block {block}" + ("" if found is None or str(found) == block else f" (now in block {found}: moved by a block rewrite)") + note + ("" if found is not None else " (not found on chain)"))
         else:
             report(found is None, f"{label}: {verdict}, and it does not resolve")
 
 ctl = secrets.token_hex(32)
 res = call("getTransaction", ctl).get("result")
 report(res is None, "control: a random hash does not resolve")
-print(f"{ok} checks pass, {bad} fail ({checks_recorded} state checks recorded during the run" + (f"; {moved} transactions moved by a block rewrite since" if moved else "") + ")")
+print(f"{ok} checks pass, {bad} fail ({checks_recorded} state checks recorded during the run" + (f"; {moved} transactions moved by a block rewrite since" if moved else "") + (f", {lost} of them found only by a block scan" if lost else "") + ")")
 sys.exit(1 if bad else 0)
 PY

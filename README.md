@@ -42,12 +42,16 @@ deployment below is history; its transactions died with the reset of 2026-09-30.
 in the committed binary, `artifacts/programs/v0.3/antumbra_auction.bin`
 (ImageID `72c22843…`): collateral types with a time-weighted feed that pauses
 only the stale type, a permissionless `liquidate` that opens the auction, and a
-debt auction for a shortfall. A local run on a v0.3.1 sequencer has three
-different fresh signers liquidate, a shortfall booked and auctioned, and one
-type paused while the other keeps liquidating and its auction keeps taking bids
-([`evidence/v03/liquidation/`](evidence/v03/liquidation/README.md)). It is a new
-ImageID, so the public testnet needs a new deployment; that run is one command,
-`scripts/testnet-liquidation-v03.sh` ([`docs/deploy-v03.md`](docs/deploy-v03.md)).
+debt auction for a shortfall. It is deployed on the public testnet as a second
+program, `J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy`, and on 2026-10-17 a run
+there had three different fresh signers liquidate, a shortfall booked and
+auctioned, and one type paused while the other keeps liquidating and its
+auction keeps taking bids: 26 applied, 11 refused as required, 22 state checks,
+0 failures; the verifier re-checks it at 52 checks, 0 failures
+(`./scripts/verify-onchain.sh --manifest evidence/v03/liquidation/testnet.tsv`,
+[`evidence/v03/liquidation/`](evidence/v03/liquidation/README.md)). The run is
+one command, `scripts/testnet-liquidation-v03.sh`
+([`docs/deploy-v03.md`](docs/deploy-v03.md)).
 
 ## What this found
 

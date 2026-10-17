@@ -1,0 +1,105 @@
+{"header":"J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy","image_id":"72c22843aa2c128f2e580ed7d96a478e6184b9d734dd09abe29199c1c4c1a433","op":"deploy","segments":["BxAZqjURET9GSqZ4c6Lipmhg9hWtx8AuQYRtgczSiJRr","92iskcnpt6EzdN6vXhX2DtJPwBjT9qztUR3QgpTi68c1","9xsGTBCCJMoZiELTCZVKc4ax67ny6eCAnD4vYF19ZpJL","H49zYJUsrMugrL7qVFjXL4u75LhASHmx5eZmZHG9UptQ","5ujMS92s2EETeEBMDCd27DszCSZA3CAexmQxnn6eHUSs"]}
+# run against https://testnet.lez.logos.co, 2026-10-17T08:01:59Z
+# program J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy 72c22843aa2c128f2e580ed7d96a478e6184b9d734dd09abe29199c1c4c1a433
+  ok  three liquidators, three different accounts: 3
+== 1. a config, two collateral types with their own feeds, debt auction terms, five positions
+{"block":28593,"label":"init-config","op":"init-config","tx":"b0d6a6acd685a7afa0e15239694538e23988b328ff9c8b2ab0feedd7bc90a06b","verdict":"applied"}
+  ok  init-config: applied
+{"block":28599,"label":"init-type-a","op":"init-ctype","tx":"e6fac738b40b8a34e2e3f84fc90e21c3edcf4d7a269ec5899a07eb92c88cefff","verdict":"applied"}
+  ok  init-type-a: applied
+{"block":28606,"label":"init-type-b","op":"init-ctype","tx":"0a57cef24199748248a4fd2352b8bdd22c1839c8b51dfac73a696192587a7339","verdict":"applied"}
+  ok  init-type-b: applied
+{"block":28618,"label":"init-type-by-non-admin","op":"init-ctype","tx":"beaaeb945cbd22a705378f5a0a6efe86a85f82c1b94d9393bc22f92a8efff0c7","verdict":"reverted"}
+  ok  init-type-by-non-admin: reverted
+{"block":28622,"label":"init-debt-terms","op":"init-debt-config","tx":"f4f3ea475cd19bc62469530c88878224c2fc4b86f0687f9417660bb842169989","verdict":"applied"}
+  ok  init-debt-terms: applied
+{"block":28643,"label":"open-pos-1","op":"open-position","tx":"cbbac039ef4d97afba3bcd8df8883ef61bb87a2ed151610ce5e74aaf68a68ac8","verdict":"applied"}
+  ok  open-pos-1: applied
+{"block":28646,"label":"open-pos-2","op":"open-position","tx":"447dfefc3f71b4038eea85ec9bd027cd08acf869b68ed3b6c8e3b8c1b78ffb3b","verdict":"applied"}
+  ok  open-pos-2: applied
+{"block":28653,"label":"open-pos-4","op":"open-position","tx":"feb1b334e3efe078aec627682c920d6dc45f79c343d29a5d3184a5a362990a2a","verdict":"applied"}
+  ok  open-pos-4: applied
+{"block":28659,"label":"open-pos-3","op":"open-position","tx":"ea80d3dcd68b155a513f7c00c0c8cc48dc78400dd60d3d52ff0bac024449d3c3","verdict":"applied"}
+  ok  open-pos-3: applied
+{"block":28663,"label":"open-pos-5","op":"open-position","tx":"baf1a8187ab2da8f68be9f0fdff11d408b8bac0b8e96fbf7b2e3830c70c30dbc","verdict":"applied"}
+  ok  open-pos-5: applied
+{"block":28669,"label":"price-a-2000","op":"update-price","tx":"9a53d58d574c5b8085680467e34b37c28c8ca16ff64eb8c707259d18b656956b","verdict":"applied"}
+  ok  price-a-2000: applied
+{"block":28670,"label":"price-b-100","op":"update-price","tx":"0e34b8fd316fa9259cfdd96cfd243b6cfce14e10056e368ba0970d2084c416af","verdict":"applied"}
+  ok  price-b-100: applied
+{"block":28676,"label":"price-by-non-admin","op":"update-price","tx":"f9ee847e78573ee13e29ca57f3aaf428ca503efbdf4a786e064c7bd41c1aff76","verdict":"reverted"}
+  ok  price-by-non-admin: reverted
+== 2. F1: the price falls, and three different signers liquidate
+{"block":28682,"label":"liquidate-safe","op":"liquidate","tx":"b80c1f300314efacc6d5729d31e34d4759d9e6a0a49cec51b088688715ef238a","verdict":"reverted"}
+  ok  liquidate-safe: reverted
+  ok  the safe position is untouched: 0
+{"block":28689,"label":"price-a-1000","op":"update-price","tx":"8fe495e921afd792ea47a8f566a351ddce8fe767c6aacb3467da63c273a3cb91","verdict":"applied"}
+  ok  price-a-1000: applied
+{"block":28695,"label":"price-b-50","op":"update-price","tx":"b534a1709f53fbff40bbacde0fd75e776029ae3c6d8ff057421301e5c04ea0bb","verdict":"applied"}
+  ok  price-b-50: applied
+{"block":28698,"label":"liquidate-p1-by-keeper1","op":"liquidate","tx":"f3f6bc1a56d58f8bb044ce3538fd346cf1244766809163cf7711126116063b4c","verdict":"applied"}
+  ok  liquidate-p1-by-keeper1: applied
+{"block":28704,"label":"liquidate-p1-again-by-keeper2","op":"liquidate","tx":"7a02b7f8ff0d24a10d77841618dd974db68a668607f222e581e0c4c37087bde8","verdict":"reverted"}
+  ok  liquidate-p1-again-by-keeper2: reverted
+{"block":28710,"label":"liquidate-p2-by-keeper2","op":"liquidate","tx":"1e07981582dfcdb1c6f7a30841443dc7a53dd290a173984cde87523d5ca2fefd","verdict":"applied"}
+  ok  liquidate-p2-by-keeper2: applied
+{"block":28711,"label":"liquidate-p3-by-keeper3","op":"liquidate","tx":"acf1fb8347b381f2e87f7e7eb92b377144c684cad716633b1674b5c9ac1d1854","verdict":"applied"}
+  ok  liquidate-p3-by-keeper3: applied
+  ok  p1 liquidated by keeper 1: qKryNLtRnMqNDjRtBU8PtuPUPf2wGu9gP5B5yZU4XTk
+  ok  p2 liquidated by keeper 2: JBmY4BxkksbeLmnfTmZpY97k6WU3TEZTP6UxyhWuchuR
+  ok  p3 (type B) liquidated by keeper 3: FGHmogoxmMrA4RpPbBewK7WNe4HAFzBrJryR2GKXNHdj
+  ok  the keeper's tip is 2% of the collateral: 200000000000000000
+  ok  p1's auction raises debt plus 13%: 13560000000000000000000
+  ok  p1's auction sells the lot less the tip: 9800000000000000000
+== 3. F4: p1's lot runs out short of its target; the shortfall goes to a debt auction
+{"block":28715,"label":"buy-out-p1","op":"buy","tx":"9d3fad3979285cae9687256499f1553bd4f2039f531818e762cd2084e1c28412","verdict":"applied"}
+  ok  buy-out-p1: applied
+  ok  p1's lot is gone: 0
+  ok  sold + left == seized (R6): True
+  ok  p1's auction closed itself: 1
+  ok  it closed short of debt plus penalty: True
+{"block":28722,"label":"book-wrong-amount","op":"book-shortfall","tx":"28b913b8c734a8ac829028c174c08b386eee00c247410f131f8608bf9009387c","verdict":"reverted"}
+  ok  book-wrong-amount: reverted
+{"block":28720,"label":"book-shortfall-by-keeper2","op":"book-shortfall","tx":"b1dd629a453de296eb7401a9448e16baed73966585284a0bb3693dbb4af3999e","verdict":"applied"}
+  ok  book-shortfall-by-keeper2: applied
+{"block":28732,"label":"book-again-by-keeper3","op":"book-shortfall","tx":"b911ccd2c9da7688d65af0fe4bdea90a0291845760dcb6fdc4bb98210890a66d","verdict":"reverted"}
+  ok  book-again-by-keeper3: reverted
+  ok  the debt auction covers exactly the shortfall: 1108235294117647058831
+  ok  it offers the configured lot of the protocol token: 1000000000000000000000
+{"block":28745,"label":"settle-debt-no-bid","op":"settle-debt","tx":"b1628d26f6af2a2d874ad7ae7cd0c26dc72f526ee6a9f1285dbed8c373beb3f9","verdict":"reverted"}
+  ok  settle-debt-no-bid: reverted
+{"block":28757,"label":"debt-bid-not-3pct","op":"debt-bid","tx":"1748067d3fd4049ee115e5733a67766ea07428b92afc1f298b860f7ebaf1497f","verdict":"reverted"}
+  ok  debt-bid-not-3pct: reverted
+{"block":28770,"label":"debt-bid-keeper1-970","op":"debt-bid","tx":"619c2d907dfa5a8ac5a76e5bacadb9594ad02750b2bb57c38b57f288b8603c19","verdict":"applied"}
+  ok  debt-bid-keeper1-970: applied
+{"block":28776,"label":"debt-bid-unchanged","op":"debt-bid","tx":"cf2a239f1297f57fba9a55d74d878bee598f6685b70074936429b437197ea34c","verdict":"reverted"}
+  ok  debt-bid-unchanged: reverted
+{"block":28782,"label":"debt-bid-keeper2-900","op":"debt-bid","tx":"ae1d4e5a7b820e3a57ac457a485e7a2f304e107b2374066e5b3e47d6c9b02db2","verdict":"applied"}
+  ok  debt-bid-keeper2-900: applied
+{"block":28789,"label":"settle-debt-early","op":"settle-debt","tx":"1a8b33b2f6e935d0f45cdd6319efd84cc2f8379fbe93fddafac0c6b11989e336","verdict":"reverted"}
+  ok  settle-debt-early: reverted
+{"block":28813,"label":"settle-debt","op":"settle-debt","tx":"7482fd7711bf9aff5492a6971fe5badb699435b948afeba7dff7a386df2865c4","verdict":"applied"}
+  ok  settle-debt: applied
+  ok  the debt auction settled: 1
+  ok  keeper 2 won it: JBmY4BxkksbeLmnfTmZpY97k6WU3TEZTP6UxyhWuchuR
+  ok  for 900 of the protocol token: 900000000000000000000
+== 4. R2, R4, R5: A's feed goes stale, B's does not
+{"block":28819,"label":"price-b-refresh","op":"update-price","tx":"95133df5b871703d6eb5f73adb2a9b1c462e6bbfc979ab621c150115030e3e4e","verdict":"applied"}
+  ok  price-b-refresh: applied
+  ok  A's feed is stale: True
+  ok  B's feed is fresh: False
+{"block":28825,"label":"liquidate-p4-stale-type-a","op":"liquidate","tx":"b91ba757561b8bb45275b48b2388a1c65047dddf39fe77db6656ac5e469e2c0a","verdict":"reverted"}
+  ok  liquidate-p4-stale-type-a: reverted
+  ok  p4 is untouched while A is paused: 0
+{"block":28836,"label":"liquidate-p5-type-b-by-keeper2","op":"liquidate","tx":"9b4cd45265ff82e2477c11dc4760f1acda65ec9bc057840bc19e736be2579dab","verdict":"applied"}
+  ok  liquidate-p5-type-b-by-keeper2: applied
+{"block":28842,"label":"bid-on-type-a-auction","op":"buy","tx":"eb1f6ebf82f1f6a1ecf16c5eb7a29ceb03d320e5cf4271b5546ed39f3dc7956d","verdict":"applied"}
+  ok  bid-on-type-a-auction: applied
+  ok  type A's auction kept taking bids: True
+{"block":28855,"label":"price-a-resumes","op":"update-price","tx":"43681e52ed7398323b1ca448b9cbb195034eac0dc3e14b7cee197251cf60bd2a","verdict":"applied"}
+  ok  price-a-resumes: applied
+{"block":28857,"label":"liquidate-p4-by-keeper3","op":"liquidate","tx":"9c874512f7f5b590a1c52cc7246fa0fcda06f32aa95cdff1e34dde206b1a0f88","verdict":"applied"}
+  ok  liquidate-p4-by-keeper3: applied
+  ok  p4 liquidated once A's feed resumed: FGHmogoxmMrA4RpPbBewK7WNe4HAFzBrJryR2GKXNHdj
+  moved init-debt-terms: recorded in block 28622, in block 28624 at the end of the run
+summary: 26 applied, 11 refused as expected, 22 state checks ok, failures=0

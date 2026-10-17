@@ -4,7 +4,11 @@
 > `dc3618e8…`, the reproducible build. On 2026-10-15 the whole lifecycle ran
 > there: 8 applied, 12 refused as required, 11 state checks, 0 failures; the
 > verifier re-checks it at 26 checks, 0 failures
-> ([`evidence/v03/`](evidence/v03/README.md)). Everything below is the v0.2.4
+> ([`evidence/v03/`](evidence/v03/README.md)). The liquidation build (F1, F4,
+> R2, R4, R5), ImageID `72c22843…`, is a second deployment at
+> `J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy`; its run on 2026-10-17: 26
+> applied, 11 refused as required, 22 state checks, 0 failures, verifier 52/0
+> ([`evidence/v03/liquidation/`](evidence/v03/liquidation/README.md)). Everything below is the v0.2.4
 > deployment, kept as history: its transactions died with the testnet reset of
 > 2026-09-30, and its checker is now `scripts/verify-onchain-v024.sh`.
 

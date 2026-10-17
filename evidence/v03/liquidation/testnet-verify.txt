@@ -1,0 +1,54 @@
+antumbra_auction v0.3 against https://testnet.lez.logos.co, from evidence/v03/liquidation/testnet.tsv
+  ok   program header J3TXJsr7U31F… names ImageID 72c22843aa2c128f…
+  ok   init-config: applied, in block 28593
+  ok   init-type-a: applied, in block 28599
+  ok   init-type-b: applied, in block 28606
+  ok   init-type-by-non-admin: reverted, in block 28618
+  ok   init-debt-terms: applied, in block 28624
+  ok   open-pos-1: applied, in block 28643
+  ok   open-pos-2: applied, in block 28646
+  ok   open-pos-4: applied, in block 28653
+  ok   open-pos-3: applied, in block 28659
+  ok   open-pos-5: applied, in block 28663
+  ok   price-a-2000: applied, in block 28669
+  ok   price-b-100: applied, in block 28670
+  ok   price-by-non-admin: reverted, in block 28676
+  ok   liquidate-safe: reverted, in block 28682
+  ok   price-a-1000: applied, in block 28689
+  ok   price-b-50: applied, in block 28695
+  ok   liquidate-p1-by-keeper1: applied, in block 28698
+  ok   liquidate-p1-again-by-keeper2: reverted, in block 28704
+  ok   liquidate-p2-by-keeper2: applied, in block 28710
+  ok   liquidate-p3-by-keeper3: applied, in block 28711
+  ok   buy-out-p1: applied, in block 28715
+  ok   book-wrong-amount: reverted, in block 28722 (now in block 28718: moved by a block rewrite); index lost after a block rewrite (getTransaction returns null), found by a block scan
+  ok   book-shortfall-by-keeper2: applied, in block 28720
+  ok   book-again-by-keeper3: reverted, in block 28732
+  ok   settle-debt-no-bid: reverted, in block 28745
+  ok   debt-bid-not-3pct: reverted, in block 28757
+  ok   debt-bid-keeper1-970: applied, in block 28770
+  ok   debt-bid-unchanged: reverted, in block 28776
+  ok   debt-bid-keeper2-900: applied, in block 28782
+  ok   settle-debt-early: reverted, in block 28789
+  ok   settle-debt: applied, in block 28813
+  ok   price-b-refresh: applied, in block 28819
+  ok   liquidate-p4-stale-type-a: reverted, in block 28825
+  ok   liquidate-p5-type-b-by-keeper2: applied, in block 28836
+  ok   bid-on-type-a-auction: applied, in block 28842
+  ok   price-a-resumes: applied, in block 28855
+  ok   liquidate-p4-by-keeper3: applied, in block 28857
+  ok   final state of GdSQaE4NG96h… shard J3TXJsr7… is as the run left it
+  ok   final state of 62CMV1zhq5vC… shard J3TXJsr7… is as the run left it
+  ok   final state of 3NVRBHrxU9yK… shard J3TXJsr7… is as the run left it
+  ok   final state of 2GmM116ej9uQ… shard J3TXJsr7… is as the run left it
+  ok   final state of AwQviXBvKAQo… shard J3TXJsr7… is as the run left it
+  ok   final state of EUMREQyLJw1Y… shard J3TXJsr7… is as the run left it
+  ok   final state of GbPnQk1KdqPv… shard J3TXJsr7… is as the run left it
+  ok   final state of Fn6UKKWCSnmh… shard J3TXJsr7… is as the run left it
+  ok   final state of 7tboUiKVzRqo… shard J3TXJsr7… is as the run left it
+  ok   final state of 391ZfoKQ1dQT… shard J3TXJsr7… is as the run left it
+  ok   final state of J22Mg5G3XdXk… shard J3TXJsr7… is as the run left it
+  ok   final state of 9XMPKjC6MJ6k… shard J3TXJsr7… is as the run left it
+  ok   final state of CiAK1wSLomiy… shard J3TXJsr7… is as the run left it
+  ok   control: a random hash does not resolve
+52 checks pass, 0 fail (22 state checks recorded during the run; 1 transactions moved by a block rewrite since, 1 of them found only by a block scan)

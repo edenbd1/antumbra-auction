@@ -162,5 +162,5 @@ PAYER=<funded public account> [TOPUP_FROM="<id> <id> ..."] ./scripts/testnet-liq
 
 It deploys, runs `scripts/e2e-liquidation-v03.sh` with a 10-minute feed age and
 5-minute debt bids (the testnet includes some transactions minutes late), and
-writes `testnet.tsv`, `testnet-transcript.txt` and `testnet-verify.txt` next to
+writes (done on 2026-10-17, header `J3TXJsr7…`, 52 checks, 0 failures) `testnet.tsv`, `testnet-transcript.txt` and `testnet-verify.txt` next to
 the local evidence.

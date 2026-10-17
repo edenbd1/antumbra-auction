@@ -1,4 +1,28 @@
-# Liquidation, the price feed and the debt auction: a local end-to-end run
+# Liquidation, the price feed and the debt auction: on the public testnet, and locally
+
+## On the public testnet (2026-10-17)
+
+The same binary (ImageID `72c22843…`) deployed immutable at header
+`J3TXJsr7U31F8G9YEVFCebeeCjd7Ro7f8t4KU4eB3iMy` on `https://testnet.lez.logos.co`
+(sequencer v0.3.1) by `scripts/testnet-liquidation-v03.sh`, and the same
+scenario as the local run below, blocks 28,593 to 28,857.
+
+**Result: 26 transactions applied, 11 refused exactly where they must be, 22
+state checks read back from the chain, 0 failures; the verifier re-checks the
+manifest at 52 checks, 0 failures.** The deploy cost 3,688,992 units and the
+37 transactions 23,626,768, as measured locally. Two transactions were moved by
+a block rewrite after the run saw them; one of them, the refused
+`book-wrong-amount`, also lost its hash index (`getTransaction` returns null),
+and the verifier finds it in block 28,718 by its hash, SHA-256 over the
+transaction's bytes after its variant tag.
+
+| File | What it is |
+|---|---|
+| `testnet-transcript.txt` | the run's output, one JSON line per transaction and one line per check |
+| `testnet.tsv` | the manifest, as for the local run |
+| `testnet-verify.txt` | `scripts/verify-onchain.sh --manifest evidence/v03/liquidation/testnet.tsv` |
+
+## On a local sequencer (2026-10-16)
 
 F1, F4, R2, R4 and R5 of RFP-014, on chain. A fresh local LEZ v0.3.1
 standalone sequencer (the version the public testnet runs), the v0.3.0 wallet,
