@@ -232,12 +232,12 @@ by hand — a field added to an account and forgotten in the IDL decodes every
 later field at the wrong offset, and prints confident nonsense rather than
 failing.
 
-It is the auction house — the state machine and the arithmetic over collateral
-it has been *told* was seized, at a price it was *handed*. It is not the
-liquidation trigger, which needs a host CDP with positions, and it does not move
-tokens yet, which needs a payer and a pinned transfer program. Both are the next
-instruction rather than this one, and the README says so rather than letting a
-reader infer otherwise.
+The auction house is the state machine and the arithmetic over collateral it
+has been *told* was seized, at a price it was *handed*. The liquidation build
+adds the trigger over positions held in the program itself (a stand-in for a
+host CDP), a time-weighted feed per collateral type, and the debt auction. It
+does not move tokens yet, which needs a payer and a pinned transfer program, and
+the README says so rather than letting a reader infer otherwise.
 
 ### One deployer, one config, because the id is the code
 
@@ -260,20 +260,22 @@ refuses a `now` below one already honoured, and `AuctionState` carries
 
 ## What this is not, yet
 
-The auction house is deployed and driven. What is **not** here, and is not
-claimed to be:
+The auction house and the liquidation build are deployed and driven. What is
+**not** here, and is not claimed to be:
 
-- **The liquidation trigger.** `src/liquidation.rs` decides health and the
-  liquidator's reward, and both are tested, but nothing on chain seizes a
-  position — that needs a host CDP with positions in it.
+- **A host CDP.** `liquidate` seizes positions the program itself holds, opened
+  by `open-position` as a stand-in; a real host CDP plugs in behind the same
+  interface.
 - **Value movement.** The program accounts for collateral and coin; it does not
   yet debit a payer or credit a bidder. That needs a payer account and a pinned
   transfer program, and it is the next instruction rather than this one.
-- **The debt and surplus auctions on chain.** `src/settlement.rs` implements
-  both and the spec licenses a mock token for them, but they are not yet
-  instructions.
-- **A price source.** `Price` carries an observation time and staleness pauses
-  one collateral type, which is what RFP-014 actually owns. Where the number
+- **The surplus auction and the buffer on chain.** The debt auction is an
+  instruction and ran on the testnet over a mock protocol token, as the spec
+  allows; `src/settlement.rs` implements the surplus side, which is not yet an
+  instruction.
+- **A real price source.** The feed on chain is written by the config's admin;
+  the program reads it time-weighted and staleness pauses one collateral type,
+  which is what RFP-014 actually owns. Where the number
   comes from is RFP-019's or RFP-020's problem, and neither has delivered a
   milestone.
 

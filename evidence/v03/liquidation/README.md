@@ -10,9 +10,10 @@ scenario as the local run below, blocks 28,593 to 28,857.
 **Result: 26 transactions applied, 11 refused exactly where they must be, 22
 state checks read back from the chain, 0 failures; the verifier re-checks the
 manifest at 52 checks, 0 failures.** The deploy cost 3,688,992 units and the
-37 transactions 23,626,768, as measured locally. Two transactions were moved by
-a block rewrite after the run saw them; one of them, the refused
-`book-wrong-amount`, also lost its hash index (`getTransaction` returns null),
+37 transactions 23,626,768 (40 more than locally). Two transactions were moved
+by a block rewrite after the run saw them: `init-debt-terms`, which the run
+re-read at its end (the `# moved` line in the manifest), and the refused
+`book-wrong-amount`, which also lost its hash index (`getTransaction` returns null),
 and the verifier finds it in block 28,718 by its hash, SHA-256 over the
 transaction's bytes after its variant tag.
 
